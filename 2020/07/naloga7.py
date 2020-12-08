@@ -32,7 +32,6 @@ def main():
 
     bags2 = [['shiny gold']]
     while True:
- #       (lambda D = data, B = bags2: [v for k,v in D.items() if k in B])()
         tmp = []
         for i in bags2[len(bags2)-1]:
             tt = data.get(i, {})

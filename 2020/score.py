@@ -49,7 +49,8 @@ def main():
     K = score['LTwkday'] <= 4
     h_wk= score.loc[K].groupby(['LThour', 'Part'])['ID'].count().unstack('Part')
     h_wkend= score.loc[~K].groupby(['LThour', 'Part'])['ID'].count().unstack('Part')
-    
+    h_week = pd.concat({'Mo-Fr': (100* h_wk / h_wk.sum()).round(1), 'Sa-Su': (100* h_wkend / h_wkend.sum()).round(1)}, axis = 1, names = ['Wkday'])
+    h_week = pd.DataFrame(index = pd.Int64Index(range(24), name = h_week.index.name), columns = pd.MultiIndex.from_tuples([], names = h_week.columns.names)).join(h_week)
 
 if __name__ == '__main__':
     main()
