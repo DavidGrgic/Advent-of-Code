@@ -7,12 +7,12 @@ import pandas as pd
 def main():
     
     # Read
-    data = pd.read_csv('data.csv', header = None).iloc[:,0].astype(int)
-    # data = []
-    # with open('data.txt', 'r') as file:
-    #     for c, ln in enumerate(file):
-    #         ins, val = ln.split(' ')
-    #         data += [(ins, eval(val))]
+#    data = pd.read_csv('data.csv', header = None).iloc[:,0].astype(int)
+    data = []
+    with open('data.txt', 'r') as file:
+        for c, ln in enumerate(file):
+            ins, val = ln.split(' ')
+            data += [(ins, eval(val))]
 
     # Part 1
 
