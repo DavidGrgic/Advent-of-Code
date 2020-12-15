@@ -37,7 +37,7 @@ def main():
     score.loc[score['Part'] == 2].groupby('ID')[['Minutes']].mean().sort_values(['Minutes']).join(score_id)
     
     # Top listaper Day/Part
-    top_no = 8
+    top_no = 5
     top_lista = None
     for d in score['Day'].unique():
         tmp = pd.Series((lambda S = score, d=d, T = top_no: {p: '; '.join('{0} [{1}]'.format(v['Name'], round(v['Minutes'],1)) for i, v in S.loc[(S['Day'] == d) & (S['Part'] == p)].sort_values('Minutes').iloc[:T].iterrows()) for p in range(1,3)})()).to_frame(d).T
