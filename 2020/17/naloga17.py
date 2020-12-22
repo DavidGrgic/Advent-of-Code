@@ -6,6 +6,7 @@ import pandas as pd
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
 import mat
+import time
 
 def main():
     
@@ -31,16 +32,10 @@ def main():
                     oko = d3_[max(i-1,0):i+2, max(j-1,0):j+2, max(l-1,0):l+2]
                     o1 = d3_[i, j, l]
                     n1 = oko.sum()
-                    if o1 == 1:
-                        if (3 <= n1 <= 4):
-                            d3[i, j, l] = 1
-                        else:
-                            d3[i, j, l] = 0
-                    if o1 == 0:
-                        if n1 == 3:
-                            d3[i, j, l] = 1
-                        else:
-                            d3[i, j, l] = 0
+                    if o1 == 1 and not (3 <= n1 <= 4):
+                        d3[i, j, l] = 0
+                    if o1 == 0 and n1 == 3:
+                        d3[i, j, l] = 1
     print(d3.sum())
 
 
@@ -59,16 +54,10 @@ def main():
                         oko = d3_[max(i-1,0):i+2, max(j-1,0):j+2, max(l-1,0):l+2, max(h-1,0):h+2]
                         o1 = d3_[i, j, l, h]
                         n1 = oko.sum()
-                        if o1 == 1:
-                            if (3 <= n1 <= 4):
-                                d3[i, j, l,h] = 1
-                            else:
-                                d3[i, j, l,h] = 0
-                        if o1 == 0:
-                            if n1 == 3:
-                                d3[i, j, l,h] = 1
-                            else:
-                                d3[i, j, l,h] = 0
+                        if o1 == 1 and not (3 <= n1 <= 4):
+                            d3[i, j, l,h] = 0
+                        if o1 == 0 and n1 == 3:
+                            d3[i, j, l,h] = 1
     print(d3.sum())
 
 
