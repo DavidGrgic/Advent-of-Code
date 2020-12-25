@@ -18,10 +18,10 @@ def main():
             return a2d
         elif k == 1:
             return pd.np.flip(a2d, axis = 0)
-        elif k == 2:
-            return pd.np.flip(a2d, axis = 1)
-        elif k == 3:
-            return pd.np.flip(pd.np.flip(a2d, axis = 0), axis = 1)
+        # elif k == 2:
+        #     return pd.np.flip(a2d, axis = 1)
+        # elif k == 3:
+        #     return pd.np.flip(pd.np.flip(a2d, axis = 0), axis = 1)
         else:
             raise ValueError('Flip paramenter should be 0-3')
     
@@ -58,7 +58,7 @@ def main():
                     if xy not in {i[:2] for i in kor.values()}:  # samo če je sosednje mesto že prosto
                         for k in nepregledani:   # Primerjamo preostale
                             for rot in range(4):
-                                for flp in range(4):
+                                for flp in range(2):
                                     mm = data[k].copy()
                                     mm = pd.np.rot90(mm, rot)
                                     mm = flip(mm, flp)
@@ -109,7 +109,7 @@ def main():
     mo = pd.np.where(mon)
     mm = 0
     for rot in range(4):
-        for flp in range(4):
+        for flp in range(2):
             im = img.copy()
             im = pd.np.rot90(im, rot)
             im = flip(im, flp)
@@ -117,7 +117,7 @@ def main():
                 for j in range(im.shape[1] - mon.shape[1] + 1):
                     if (im[i:i+mon.shape[0], j:j+mon.shape[1]] == mon)[mo].all():
                         mm += 1
-    print(int(img.sum() - mm / 2 * mon.sum()))
+    print(int(img.sum() - mm * mon.sum()))
 
 if __name__ == '__main__':
     main()
