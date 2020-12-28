@@ -40,24 +40,29 @@ def chk2(msg, rul, ru = 0, par = []):
             if o == (8, 11): # Zanka
                 s42 = set(comb(rul, 42))
                 s31 = set(comb(rul, 31))
-                ln = len(next(iter(s42)))
-                tmp = ''
+                ln42 = len(next(iter(s42)))
+                ln31 = len(next(iter(s31)))
+                if any((lambda L = ln42, S = s42: [len(i) != L for i in S])()) or any((lambda L = ln31, S = s31: [len(i) != L for i in S])()):
+                    raise Exception('Mixed length not suported!')
+                mg = ''
                 k42 = 0
                 while True:
-                    if msg[po + len(tmp): po + len(tmp) + ln] in s42:
-                        tmp += msg[po + len(tmp): po + len(tmp) + ln]
+                    tmp = msg[po + len(mg): po + len(mg) + ln42]
+                    if tmp in s42:
+                        mg += tmp
                         k42 += 1
                     else:
                         break
                 k31 = 0
                 while True:
-                    if msg[po + len(tmp): po + len(tmp) + ln] in s31:
-                        tmp += msg[po + len(tmp): po + len(tmp) + ln]
+                    tmp = msg[po + len(mg): po + len(mg) + ln31]
+                    if tmp in s31:
+                        mg += tmp
                         k31 += 1
                     else:
                         break
-                if msg[po:] == tmp and 0 < k31 < k42:
-                    return True, ''.join(par) + tmp
+                if msg[po:] == mg and 0 < k31 < k42:
+                    return True, ''.join(par) + mg
                 else:
                     return False, ''
             else:
