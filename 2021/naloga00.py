@@ -2,7 +2,7 @@
 """
 @author: David Grgic
 """
-import pandas as pd
+import pandas as pd, numpy as np
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
 import mat
@@ -17,13 +17,17 @@ def main():
             ins = ln.split(' ')
             data += [(ins[0], int(ins[1]))]
 
-    # Part 1
 
-    print(f"A1: {0}")
-            
+    # Part 1
+    if True:
+
+        print(f"A1: {0}")
+          
+    
     # Part 2
 
     print(f"A2: {0}")
+
 
 if __name__ == '__main__':
     main()

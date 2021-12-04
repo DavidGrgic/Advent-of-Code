@@ -13,3 +13,8 @@ def prod(x):
     else:
         y = x
     return y
+
+def iter2bin(x, reverse = False):
+    bi = x if hasattr(x, '__iter__') and not isinstance(x, str) else [x]
+    bi = [int(bool(i)) for i in bi][::1 if reverse else -1]
+    return sum([b*2**i for i, b in enumerate(bi)])
