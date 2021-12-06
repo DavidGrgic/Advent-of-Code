@@ -18,7 +18,7 @@ def main():
         score += (lambda N = name, D = data: [(int(user_id), N, int(d), int(p), int(w.get('get_star_ts'))) for d, v in D.get('completion_day_level').items() for p, w in v.items()])()
     score = pd.DataFrame(score, columns = ['ID', 'Name', 'Day', 'Part', 'Time'])
     score['UTC'] = score['Time'].astype('datetime64[s]')
-    score['UTC0'] = [pd.Timestamp('2020-12-01') + pd.Timedelta(days = v['Day']-1) + pd.Timedelta(hours = 5) for i, v in score.iterrows()]
+    score['UTC0'] = [pd.Timestamp(f"{sco['event']}-12-01") + pd.Timedelta(days = v['Day']-1) + pd.Timedelta(hours = 5) for i, v in score.iterrows()]
     score['Minutes'] = (score['UTC'] - score['UTC0']).astype('timedelta64[s]')/60
     score['LT'] = pd.DatetimeIndex(score['UTC']).tz_localize('UTC').tz_convert('CET').tz_localize(None)
     score['LTwkday'] = score['LT'].dt.dayofweek  # 0: Mon ... 6: Sun
@@ -29,6 +29,9 @@ def main():
 
     # Day/Part statistic
     minutes = score.loc[(score['Day'] == 1) & (score['Part'] == 2), ['Name', 'Day', 'LT', 'Minutes']].sort_values('Minutes')
+
+    # Name place
+    rank = (lambda N = 'David Grgic', S = score, D = pd.Int64Index([i+1 for i in range(score['Day'].max())], name = 'Day'), P = pd.Int64Index([i for i in range(1,3)], name = 'Part'), np = pd.np: pd.DataFrame([[np.append(np.where(S.loc[(S['Day'] == d) & (S['Part'] == p)].sort_values('Minutes')['Name'].values == N)[0], -1)[0]+1 for p in P] for d in D], index = D, columns = P).astype(str).replace({'0':''}))()
 
     # Name statistic 
     names = score.loc[score['Name'] == 'Blaž Peterlin'].sort_values(['Day', 'Part'])

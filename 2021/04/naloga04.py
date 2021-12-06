@@ -33,7 +33,7 @@ def main():
         drawn = np.zeros(data.shape).astype(bool)
         for i, n in enumerate(num):
             drawn |= data == n
-            res = (drawn.all(axis = 1) | drawn.all(axis = 2)).any(axis = 1)
+            res = drawn.all(axis = 1).any(axis = 1) | drawn.all(axis = 2).any(axis = 1)
             if res.any():
                 board = np.where(res)[0][0]
                 res = data[board,:,:][~drawn[board,:,:]].sum() * n
@@ -46,7 +46,7 @@ def main():
     board = None
     for i, n in enumerate(num):
         drawn |= data == n
-        res = (drawn.all(axis = 1) | drawn.all(axis = 2)).any(axis = 1)
+        res = drawn.all(axis = 1).any(axis = 1) | drawn.all(axis = 2).any(axis = 1)
         if res.sum() == (data.shape[0]-1):
             board = np.where(~res)[0][0]
         if res.all():

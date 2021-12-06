@@ -30,6 +30,9 @@ def main():
     # Day/Part statistic
     minutes = score.loc[(score['Day'] == 1) & (score['Part'] == 2), ['Name', 'Day', 'LT', 'Minutes']].sort_values('Minutes')
 
+    # Name place
+    rank = (lambda N = 'David Grgic', S = score, D = pd.Int64Index([i+1 for i in range(score['Day'].max())], name = 'Day'), P = pd.Int64Index([i for i in range(1,3)], name = 'Part'), np = pd.np: pd.DataFrame([[np.append(np.where(S.loc[(S['Day'] == d) & (S['Part'] == p)].sort_values('Minutes')['Name'].values == N)[0], -1)[0]+1 for p in P] for d in D], index = D, columns = P).astype(str).replace({'0':''}))()
+
     # Name statistic 
     names = score.loc[score['Name'] == 'Blaž Peterlin'].sort_values(['Day', 'Part'])
     

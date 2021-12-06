@@ -11,11 +11,13 @@ def main():
 
     # Read
     data = []
-    with open('data.txt', 'r') as file:
+    with open('tdata.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
-            ins = ln.split(' ')
-            data += [(ins[0], int(ins[1]))]
+            if ln == '': # Nov blok podatkov
+                pass
+            da = ln.split()
+            data += [da]
 
 
     # Part 1
