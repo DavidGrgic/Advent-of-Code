@@ -16,7 +16,7 @@ def main():
             ln = ln.replace('\n', '')
             if ln == '': # Nov blok podatkov
                 pass
-            da = ln.split()
+            da = ln.split(',')
             data += [da]
 
 
