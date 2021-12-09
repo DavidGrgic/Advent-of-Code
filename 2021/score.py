@@ -4,7 +4,7 @@
 """
 import pandas as pd
 import os, json
-    
+
 def main():
     _json = os.path.join(os.path.dirname(__file__), 'score.json')
     if not os.path.isfile(_json):
