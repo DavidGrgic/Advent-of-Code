@@ -38,13 +38,11 @@ def main():
                     data[max(x-1,0):x+2, max(y-1,0):y+2] += 1
                     fls[dat] = True
         print(f"A1: {flash}")
-          
-    
+
     # Part 2
     data = data0.copy()
     i = 0
     while True:
-        if i%1000 == 0: print(i)
         i += 1
         data += 1
         fls = np.zeros_like(data).astype(bool)
