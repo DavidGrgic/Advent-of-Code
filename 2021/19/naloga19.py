@@ -70,7 +70,7 @@ def main():
                     for j in {(0,0),(0,1),(1,0),(1,1)}:
                         idx.loc[i[0][j[0]],i[1][j[1]]] += 1
                 mapp = (lambda I = idx, K = np.where(idx >= comm_no - 1): {int(I.index[i]):int(I.columns[j]) for i,j in zip(K[0],K[1])})()
-                assert len(mapp) >= 12
+                assert len(mapp) >= comm_no
                 comb = collections.Counter(comm.values())
                 trans = next(iter((lambda C = comb, M = max(comb.values()): {k for k, v in C.items() if v == M})()))  # Transformation: order, direction
                 pai = next(iter(k for k, v in comm.items() if v == trans))
@@ -80,8 +80,16 @@ def main():
                 pairs.update({kk: trans})
             elif len(comm) > 0:
                 print(f"{kk}: {len(comm)}")
-        print(pairs)
-        print(len(pairs)) # Mora biti eno manj od števila skenerjev.
+        assert len(pairs) >= len(data) - 1
+        pair = (lambda K = {i[0] for i in pairs.keys()}, P = pairs: {k: {i[1] for i in P if i[0] == k} for k in K})()
+        map0 = {0: ((1,1,1), (0,0,0))}
+        map0.update({i:None for i in data if i not in map0})
+        while len({k for k, v in map0.items() if v is None}) > 0:
+            not_done = {k for k, v in map0.items() if v is None}
+            to_do = {k: {i for i in pair[k] if i in not_done} for k, v in map0.items() if v is not None}
+            for k, v in to_do.items():
+                pass
+        
 
                             
         print(f"A1: {0}")
