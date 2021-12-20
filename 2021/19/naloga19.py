@@ -32,6 +32,8 @@ def main():
 
     # Part 1
     if True:
+        comm_no = 12
+        
         data_rel = {}
         for k, bea in data.items():
             rel = {}
@@ -62,12 +64,19 @@ def main():
                         raise AssertionError()
                     elif len(com) == 1:
                         comm.update(com)
-            if len(comm) >= sum(range(12)):
+            if len(comm) >= sum(range(comm_no)):
+                idx = pd.DataFrame(0, index = pd.Int64Index({j for i in comm.keys() for j in i[0]}, name = f"[{kk[0]}]"), columns = pd.Int64Index({j for i in comm.keys() for j in i[1]}, name = f"[{kk[1]}]"), dtype = int)
+                for i in comm:
+                    for j in {(0,0),(0,1),(1,0),(1,1)}:
+                        idx.loc[i[0][j[0]],i[1][j[1]]] += 1
+                mapp = (lambda I = idx, K = np.where(idx >= comm_no - 1): {int(I.index[i]):int(I.columns[j]) for i,j in zip(K[0],K[1])})()
+                assert len(mapp) >= 12
                 comb = collections.Counter(comm.values())
                 trans = next(iter((lambda C = comb, M = max(comb.values()): {k for k, v in C.items() if v == M})()))  # Transformation: order, direction
                 pai = next(iter(k for k, v in comm.items() if v == trans))
-                da = (lambda D = data[kk[1]][pai[1][0]], T = trans: tuple(D[i] * s for i, s in zip(T[0],T[1])))()  ### TODO: prvi iz pai[0] s prvim ALI drugim iz pai[1]
-                trans += (tuple(i-j for i, j in zip(data[kk[0]][pai[0][0]],da)),)  # Transformation: order, direction, position
+                pai = (pai[0][0], pai[1][pai[1].index(mapp[pai[0][0]])])
+                da = (lambda D = data[kk[1]][pai[1]], T = trans: tuple(D[i] * s for i, s in zip(T[0],T[1])))()
+                trans += (tuple(i-j for i, j in zip(data[kk[0]][pai[0]],da)),)  # Transformation: order, direction, position
                 pairs.update({kk: trans})
             elif len(comm) > 0:
                 print(f"{kk}: {len(comm)}")
