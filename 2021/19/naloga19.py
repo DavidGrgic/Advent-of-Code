@@ -33,7 +33,33 @@ def main():
     # Part 1
     if True:
         comm_no = 12
+
+        def transformation(beacons, trans):
+            """
+            trans:
+            Prvi tuple je vrstni red kako morajo biti premetani vhodni elemente, da so potem po istem vrstnem redu kot referenca
+            Drugi tuple je predznak vhodov, da smeri ustrezajo referenčnem smerem
+            Tretju tuple je izhodišče koordinatneg sistema glede na refereco
+            """
+            res = []
+            for bea in beacons:
+                pos = (lambda B = bea, T = trans: tuple(s*B[i] for i, s in zip(T[0],T[1])))()
+                pos = (lambda P = pos, R = trans[2]: tuple(p+r for p, r in zip(P, R)))()
+   #             pos = (lambda B = bea, T = trans: tuple(p+s*B[k] for i, k, s, p in zip(range(len(B)), T[0], T[1], T[2])))()
+                res += [pos]
+            return res
+
+        def trans_inv():
+            pass
         
+        def trans_join(trans, trans_ref):
+            # Join transformation on reference transformation
+            po = (lambda T = trans[0], I = trans_ref[0]: tuple(T[i] for i in I))()
+            si = (lambda S = trans[1], S0 = trans_ref[1], I = trans_ref[0]: tuple(S[i]*s for i,s in zip(I,S0)))()
+            re = (lambda R = trans[2], R0 = trans_ref[2], S0 = trans_ref[1], I = trans_ref[0]: tuple(s*R[i] + r for i,s,r in zip(I,S0,R0)))()
+            return (po, si, re)
+
+
         data_rel = {}
         for k, bea in data.items():
             rel = {}
@@ -55,7 +81,7 @@ def main():
                     com = {}
                     for xy in xyz:
                         for si in sig:
-                            if rel0[1] == (lambda R = rel1[1], X = xy, S = si: tuple(S[i] * R[i] for i in X))():
+                            if rel0[1] == (lambda R = rel1[1], X = xy, S = si: tuple(s * R[x] for x,s in zip(X,S)))():
                                 com.update({(br0, br1): (xy, si)}) 
                         #         break
                         # if len(com) > 0:
@@ -75,23 +101,40 @@ def main():
                 trans = next(iter((lambda C = comb, M = max(comb.values()): {k for k, v in C.items() if v == M})()))  # Transformation: order, direction
                 pai = next(iter(k for k, v in comm.items() if v == trans))
                 pai = (pai[0][0], pai[1][pai[1].index(mapp[pai[0][0]])])
-                da = (lambda D = data[kk[1]][pai[1]], T = trans: tuple(D[i] * s for i, s in zip(T[0],T[1])))()
+                da = (lambda D = data[kk[1]][pai[1]], T = trans: tuple(s * D[i] for i, s in zip(T[0],T[1])))()
                 trans += (tuple(i-j for i, j in zip(data[kk[0]][pai[0]],da)),)  # Transformation: order, direction, position
                 pairs.update({kk: trans})
             elif len(comm) > 0:
                 print(f"{kk}: {len(comm)}")
         assert len(pairs) >= len(data) - 1
-        pair = (lambda K = {i[0] for i in pairs.keys()}, P = pairs: {k: {i[1] for i in P if i[0] == k} for k in K})()
-        map0 = {0: ((1,1,1), (0,0,0))}
+#        pair = (lambda K = {i[0] for i in pairs.keys()}, P = pairs: {k: {i[1] for i in P if i[0] == k} for k in K})()
+        map0 = {0: ((0,1,2), (1,1,1), (0,0,0))}
         map0.update({i:None for i in data if i not in map0})
-        while len({k for k, v in map0.items() if v is None}) > 0:
+        while True:
             not_done = {k for k, v in map0.items() if v is None}
-            to_do = {k: {i for i in pair[k] if i in not_done} for k, v in map0.items() if v is not None}
-            for k, v in to_do.items():
-                pass
-        
+            if len(not_done) == 0:
+                break
+            to_do = (lambda P = pairs.keys(), N = not_done: [i for i in P if sum([i[0] in N, i[1] in N]) == 1])()
+            for pair in to_do:
+                if pair[1] in not_done:
+                    reverse = False
+                    ref = pair[0]
+                    do = pair[1]
+                elif pair[0] in not_done:
+                    reverse = True
+                    ref = pair[1]
+                    do = pair[0]
+                else:
+                    raise RuntimeError()
+                trans = pairs[(ref, do)]
+                if reverse:
+                    trans = trans_inv(trans)
+                if ref == 0:
+                    map0[do] = trans
+                else:
+                    trans = trans_join(trans, map0[ref])
+                    map0[do] = trans
 
-                            
         print(f"A1: {0}")
           
     
@@ -102,3 +145,23 @@ def main():
 
 if __name__ == '__main__':
     main()
+"""
+R-referenčni senzor
+S-senzor
+B-beacon
+
+........B
+.........
+.....S...
+.R.......
+
+B je na lokaciji (4,1) napram R. prva os je vodoravna (narašča >), druga je navpična (^).
+če ima sonzor B osi (0,1) in sign (1,1): B je na lokaciji (3,2) napram S in (7,3) napram R
+če ima sonzor B osi (0,1) in sign (1,-1): B je na lokaciji (3,-2) napram S in (7,3) napram R
+če ima sonzor B osi (0,1) in sign (-1,1): B je na lokaciji (-3,2) napram S in (7,3) napram R
+če ima sonzor B osi (0,1) in sign (-1,-1): B je na lokaciji (-3,-2) napram S in (7,3) napram R
+če ima sonzor B osi (1,0) in sign (1,1): B je na lokaciji (2,3) napram S in (7,3) napram R
+če ima sonzor B osi (1,0) in sign (1,-1): B je na lokaciji (2,-3) napram S in (7,3) napram R
+če ima sonzor B osi (1,0) in sign (-1,1): B je na lokaciji (-2,3) napram S in (7,3) napram R
+če ima sonzor B osi (1,0) in sign (-1,-1): B je na lokaciji (-2,-3) napram S in (7,3) napram R
+"""
