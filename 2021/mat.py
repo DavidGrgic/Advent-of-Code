@@ -18,3 +18,7 @@ def iter2bin(x, reverse = False):
     bi = x if hasattr(x, '__iter__') and not isinstance(x, str) else [x]
     bi = [int(bool(i)) for i in bi][::1 if reverse else -1]
     return sum([b*2**i for i, b in enumerate(bi)])
+
+def iter_abs(x):
+    assert hasattr(x, '__iter__') and not isinstance(x, str)
+    return tuple(abs(i) for i in x)
