@@ -93,21 +93,17 @@ def main():
                         idx.loc[i[0][j[0]],i[1][j[1]]] += 1
                 mapp = (lambda I = idx, K = np.where(idx >= comm_no - 1): {int(I.index[i]):int(I.columns[j]) for i,j in zip(K[0],K[1])})()
                 assert len(mapp) >= comm_no
-                
-                
-                
-                
-                comb = collections.Counter(comm.values())
-                trans = next(iter((lambda C = comb, M = max(comb.values()): {k for k, v in C.items() if v == M})()))  # Transformation: order, direction
-                pai = next(iter(k for k, v in comm.items() if v == trans))
-                pai = (pai[0][0], pai[1][pai[1].index(mapp[pai[0][0]])])
-                da = (lambda D = data[kk[1]][pai[1]], T = trans: tuple(s * D[i] for i, s in zip(T[0],T[1])))()
-                trans += (tuple(i-j for i, j in zip(data[kk[0]][pai[0]],da)),)  # Transformation: order, direction, position
-                pairs.update({kk: trans})
+
+                pai = (lambda D = data, M = mapp.items(), O = order, K = kk: [(D[K[0]][i], tuple(D[K[1]][j][k] for k in O)) for i, j in M])()
+                for si in sig:
+                    comb = (lambda P = pai, S = si: {tuple(i - j for i, j in zip(k[0], tuple(v*s for v, s in zip(k[1], S)))) for k in P})()
+                    if len(comb) == 1:
+                        break
+                assert len(comb) == 1 # Vsi pari nimajo iste orientaciej
+                pairs.update({kk: (order, si, next(iter(comb)))})
             elif len(comm) > 0:
                 print(f"{kk}: {len(comm)}")
         assert len(pairs) >= len(data) - 1
-#        pair = (lambda K = {i[0] for i in pairs.keys()}, P = pairs: {k: {i[1] for i in P if i[0] == k} for k in K})()
         map0 = {0: ((0,1,2), (1,1,1), (0,0,0))}
         map0.update({i:None for i in data if i not in map0})
         while True:
@@ -117,18 +113,16 @@ def main():
             to_do = (lambda P = pairs.keys(), N = not_done: [i for i in P if sum([i[0] in N, i[1] in N]) == 1])()
             for pair in to_do:
                 if pair[1] in not_done:
-                    reverse = False
                     ref = pair[0]
                     do = pair[1]
+                    trans = pairs[(ref, do)]
                 elif pair[0] in not_done:
-                    reverse = True
                     ref = pair[1]
                     do = pair[0]
+                    trans = pairs[(ref,  do)]
+                    trans = trans_inv(trans)
                 else:
                     raise RuntimeError()
-                trans = pairs[(ref, do)]
-                if reverse:
-                    trans = trans_inv(trans)
                 if ref == 0:
                     map0[do] = trans
                 else:
