@@ -14,7 +14,7 @@ def main():
     data = {}
     da = []; k = -1
     sc = True
-    with open('tdata.txt', 'r') as file:
+    with open('data.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             if ln == '': # Nov blok podatkov
@@ -45,12 +45,14 @@ def main():
             for bea in beacons:
                 pos = (lambda B = bea, T = trans: tuple(s*B[i] for i, s in zip(T[0],T[1])))()
                 pos = (lambda P = pos, R = trans[2]: tuple(p+r for p, r in zip(P, R)))()
-   #             pos = (lambda B = bea, T = trans: tuple(p+s*B[k] for i, k, s, p in zip(range(len(B)), T[0], T[1], T[2])))()
                 res += [pos]
             return res
 
-        def trans_inv():
-            pass
+        def trans_inv(trans):
+            order = tuple(trans[0].index(i) for i in range(3))
+            sig = tuple(trans[1][i] for i in order)
+            pos = tuple(-s*trans[2][i] for i, s in zip(order, sig))
+            return (order, sig, pos)
         
         def trans_join(trans, trans_ref):
             # Join transformation on reference transformation
@@ -102,7 +104,7 @@ def main():
                 assert len(comb) == 1 # Vsi pari nimajo iste orientaciej
                 pairs.update({kk: (order, si, next(iter(comb)))})
             elif len(comm) > 0:
-                print(f"{kk}: {len(comm)}")
+                pass#print(f"{kk}: {len(comm)}")
         assert len(pairs) >= len(data) - 1
         map0 = {0: ((0,1,2), (1,1,1), (0,0,0))}
         map0.update({i:None for i in data if i not in map0})
@@ -119,7 +121,7 @@ def main():
                 elif pair[0] in not_done:
                     ref = pair[1]
                     do = pair[0]
-                    trans = pairs[(ref,  do)]
+                    trans = pairs[(do, ref)]
                     trans = trans_inv(trans)
                 else:
                     raise RuntimeError()
@@ -129,12 +131,21 @@ def main():
                     trans = trans_join(trans, map0[ref])
                     map0[do] = trans
 
-        print(f"A1: {0}")
+        beacons = set(data[0])
+        for k, v in data.items():
+            if k == 0:
+                continue
+            trans = map0[k]
+            beacons |= set(transformation(v, trans))
+
+        print(f"A1: {len(beacons)}")
           
     
     # Part 2
-
-    print(f"A2: {0}")
+    dist = {}
+    for kk in list(itertools.combinations(data_rel.keys(),2)):
+        dist.update({kk: sum(abs(i-j) for i, j in zip(map0[kk[0]][2],map0[kk[1]][2]))})
+    print(f"A2: {max(dist.values())}")
 
 
 if __name__ == '__main__':
