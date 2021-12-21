@@ -78,25 +78,25 @@ def main():
                 for br1, rel1 in data_rel[kk[1]].items():
                     if rel0[0] != rel1[0]:
                         continue
-                    com = {}
+                    r0 = mat.iter_abs(rel0[1])
+                    r1 = mat.iter_abs(rel1[1])
                     for xy in xyz:
-                        for si in sig:
-                            if rel0[1] == (lambda R = rel1[1], X = xy, S = si: tuple(s * R[x] for x,s in zip(X,S)))():
-                                com.update({(br0, br1): (xy, si)}) 
-                        #         break
-                        # if len(com) > 0:
-                        #     break
-                    if len(com) > 1:
-                        raise AssertionError()
-                    elif len(com) == 1:
-                        comm.update(com)
+                        if r0 == tuple(r1[i] for i in xy):
+                            comm[(br0, br1, xy)] = 1 + comm.get((br0, br1, xy), 0)
             if len(comm) >= sum(range(comm_no)):
+                order = {k: sum(v for j, v in comm.items() if j[2] == k) for k in {i[2] for i in comm}}
+                order = next(iter(k for k, v in order.items() if v == max(order.values())))
+                comm = {k[:2]: v for k, v in comm.items() if k[2] == order}
                 idx = pd.DataFrame(0, index = pd.Int64Index({j for i in comm.keys() for j in i[0]}, name = f"[{kk[0]}]"), columns = pd.Int64Index({j for i in comm.keys() for j in i[1]}, name = f"[{kk[1]}]"), dtype = int)
                 for i in comm:
                     for j in {(0,0),(0,1),(1,0),(1,1)}:
                         idx.loc[i[0][j[0]],i[1][j[1]]] += 1
                 mapp = (lambda I = idx, K = np.where(idx >= comm_no - 1): {int(I.index[i]):int(I.columns[j]) for i,j in zip(K[0],K[1])})()
                 assert len(mapp) >= comm_no
+                
+                
+                
+                
                 comb = collections.Counter(comm.values())
                 trans = next(iter((lambda C = comb, M = max(comb.values()): {k for k, v in C.items() if v == M})()))  # Transformation: order, direction
                 pai = next(iter(k for k, v in comm.items() if v == trans))
