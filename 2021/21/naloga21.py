@@ -68,7 +68,7 @@ def main():
             pos = (lambda P = pos, T = track: [i if i[0][0] != 0 else ((T, i[0][1]),) + i[1:] for i in P])()   # Koregiramo pozicijo 0 v 10 na igralni plošči
             pos = [i[:1] + ((i[1][0]+i[0][0], i[1][1]),) + i[2:] for i in pos] # Preštejemo točke, pazi samo trenutnemu igralcu
             position = (lambda P = pos, K = k: {tuple(i[::1-2*K] for i in j[:2]): sum(k[2] for k in P if k[:2] == j) for j in {i[:2] for i in P}})()  # Kompresiramo mesta na igralni plošči in obenem se uredimo vrstni red igralcev
-            print(len(position))
+            #print(len(position))
             # Koliko iger je dobilo zmagovalca?
             zma = (lambda P = position.items(), K = k: {i: v for i, v in P if i[1][K] >= 21})()
             if len(zma) > 0:
