@@ -31,6 +31,13 @@ def main():
         nn = len(osebe)
         miza = {}
         for miz in itertools.permutations(osebe):
+            done = False
+            for i in range(1, len(miz)):
+                if (miz[i:] + miz[:i]) in miza:
+                    done = True
+                    break
+            if done:
+                break
             miza.update({miz: sum(data.get((miz[i], miz[i-1]),0) + data.get((miz[i], miz[(i+1) % nn]),0)  for i in range(nn))})
         return max(miza.values())
 
