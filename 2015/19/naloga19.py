@@ -60,7 +60,7 @@ def main():
                     if j == mole[i: i+len(j)]:
                         re = reduce(mole[:i] + (k,) + mole[i+len(j):], globina + 1)
                         res |= {(''.join(mole),) + r for r in re} if _debug else {1 + r for r in re}
-            if globina <= 1008: print(min(globina,10) * "\t" + f"{globina}: {i}/{len(mole)}")
+            if globina <= 184: print(min(globina,4) * "\t" + f"{globina}: {i}/{len(mole)}")
         return res
 
     _debug = False
