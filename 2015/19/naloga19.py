@@ -24,31 +24,21 @@ def main():
                 da = ln.split(' => ')
                 repl.update({da[0]: repl.get(da[0], set()) | {da[1]}})
 
-    def mole_split(mole: str, mol: set):
+    def mole_split(mole: str):
         res = ()
-        while len(mole) > 0:
-            fres = {k: v for k, v in {k: mole.find(k) for k in mol}.items() if v >= 0}
-            if len(fres) == 0:
-                res += (mole,)
-                break
-            fmin = min(fres.values())
-            fres = next(iter(k for k, v in fres.items() if v == fmin))
-            res += ((mole[:fmin],) if fmin > 0 else ()) + (fres,)
-            mole = mole[fmin + len(fres):]
-        return res
-
-    comp = set(repl.keys())
-    for i in set(mole_split(mole, comp)) - comp:
         while True:
-            tmp = [j.isupper() for j in i]
+            tmp = [j.isupper() or j == 'e' for j in mole]
             tmp = tmp[1:].index(True) if True in tmp[1:] else -1
             if tmp >= 0:
-                pass
+                res += (mole[:1+tmp],)
+                mole = mole[1+tmp:]
             else:
-                comp |= {i}
+                res += (mole,)
                 break
-    mole = mole_split(mole, comp)
-    repl = {k: {mole_split(i, comp) for i in v} for k, v in repl.items()}
+        return res
+
+    mole = mole_split(mole)
+    repl = {k: {mole_split(i) for i in v} for k, v in repl.items()}
 
     # Part 1
     if True:
@@ -70,7 +60,7 @@ def main():
                     if j == mole[i: i+len(j)]:
                         re = reduce(mole[:i] + (k,) + mole[i+len(j):], globina + 1)
                         res |= {(''.join(mole),) + r for r in re} if _debug else {1 + r for r in re}
-            if globina <= 8: print(globina * "\t" + f"{i}/{len(mole)}")
+            if globina <= 1008: print(min(globina,10) * "\t" + f"{globina}: {i}/{len(mole)}")
         return res
 
     _debug = False
