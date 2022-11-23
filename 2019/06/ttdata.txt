@@ -1,0 +1,2 @@
+COM)AAA
+AAA)BBB
