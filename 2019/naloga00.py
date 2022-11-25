@@ -4,10 +4,11 @@
 """
 import pandas as pd, numpy as np
 from collections import Counter
-from itertools import permutations, combinations
+from itertools import permutations, combinations, product
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
 import mat
+_img_map = {0: ' ', 1: '#'}; _img_print = lambda x: print('\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]))
 
 def main():
 

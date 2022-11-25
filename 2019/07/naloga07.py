@@ -13,7 +13,7 @@ def main():
 
     # Read
     data = []
-    with open('ttdata.txt', 'r') as file:
+    with open('data.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             data += [int(i) for i in ln.split(',')]
@@ -87,7 +87,7 @@ def main():
         first = True; halt = False
         while all(i >= 0 for i in pos):
             for i, p in enumerate(per):
-                dt, ps, va = intcode(dat[i], [p, val] if first else [val], pos[i])
+                dt, ps, va = intcode(dat[i], [p, va] if first else [va], pos[i])
                 dat[i] = dt
                 pos[i] = ps
                 if ps < 0:
@@ -95,7 +95,7 @@ def main():
                     break
             if halt:
                 break
-            else:
+            elif i == 4:
                 val = va
             first = False
         p2.update({per: val})
