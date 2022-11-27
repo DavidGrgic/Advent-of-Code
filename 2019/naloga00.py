@@ -4,6 +4,7 @@
 """
 import pandas as pd, numpy as np
 from collections import Counter
+from fractions import Fraction
 from itertools import permutations, combinations, product
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
