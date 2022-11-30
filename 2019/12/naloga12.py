@@ -6,6 +6,7 @@ import pandas as pd, numpy as np
 from collections import Counter
 from fractions import Fraction
 from itertools import permutations, combinations, product
+from math import lcm
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
 import mat
@@ -21,10 +22,6 @@ def main():
             da = ln.split(', ')
             data += [[int(i[2:]) for i in da]]
 
-
-    def lcm(x, y):
-        from math import gcd # or can import gcd from `math` in Python 3
-        return x * y // gcd(x, y)
 
     pos = np.array(data)
     vel = np.zeros_like(pos)
