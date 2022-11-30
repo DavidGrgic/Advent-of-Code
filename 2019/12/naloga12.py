@@ -36,20 +36,19 @@ def main():
 
     # Part 2
     pos = np.array(data)
-    pos = pos.reshape((1,)+pos.shape)
     vel = np.zeros_like(pos)
+    pos0 = pos.copy(); vel0 = vel.copy()
     xyz = {}
     k = 0
     while len(xyz) < 3:
         k += 1
-        vel = np.insert(vel, k, vel[k-1,:,:] + np.array([np.sign(pos[k-1,[i for i in range(pos.shape[1]) if i != p],:] - pos[k-1,p,:]).sum(axis = 0) for p in range(pos.shape[1])]), axis = 0)
-        pos = np.insert(pos, k, pos[k-1,:,:] + vel[k,:,:], axis = 0)
+        vel += np.array([np.sign(pos[[i for i in range(pos.shape[0]) if i != p],:] - pos[p,:]).sum(axis = 0) for p in range(pos.shape[0])])
+        pos += vel
         for i in range(3):
             if i not in xyz:
-                tmp = np.where(((pos[k,:,i] == pos[:k,:,i]) & (vel[k,:,i] == vel[:k,:,i])).all(axis=1))[0]
-                if tmp.shape[0] > 0 and i not in xyz:
-                    xyz.update({i: tuple(sorted(tmp)) + (k,)})
-    print(f"A2: {lcm(*tuple(v[1]-v[0] for k, v in xyz.items()))}")
+                if ((pos[:,i] == pos0[:,i]) & (vel[:,i] == vel0[:,i])).all():
+                    xyz.update({i: k})
+    print(f"A2: {lcm(*xyz.values())}")
 
 
 if __name__ == '__main__':
