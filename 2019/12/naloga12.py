@@ -16,7 +16,7 @@ def main():
 
     # Read
     data = []
-    with open('tdata.txt', 'r') as file:
+    with open('data.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')[1:-1]
             da = ln.split(', ')
@@ -38,23 +38,18 @@ def main():
     pos = np.array(data)
     pos = pos.reshape((1,)+pos.shape)
     vel = np.zeros_like(pos)
-    ve = {}; po = {}
+    xyz = {}
     k = 0
-    while k < 2780:
+    while len(xyz) < 3:
         k += 1
         vel = np.insert(vel, k, vel[k-1,:,:] + np.array([np.sign(pos[k-1,[i for i in range(pos.shape[1]) if i != p],:] - pos[k-1,p,:]).sum(axis = 0) for p in range(pos.shape[1])]), axis = 0)
         pos = np.insert(pos, k, pos[k-1,:,:] + vel[k,:,:], axis = 0)
-        tmp = np.where((pos[k,:,:] == pos[:k,:,:]).all(axis=(1,2)))[0]
-        if tmp.shape[0] > 0:
-            tmp = sorted(tmp) + [k]
-            po.update({tmp[0]: tuple(tmp[1:])})
-        tmp = np.where((vel[k,:,:] == vel[:k,:,:]).all(axis=(1,2)))[0]
-        if tmp.shape[0] > 0:
-            tmp = sorted(tmp) + [k]
-            ve.update({tmp[0]: tuple(tmp[1:])})
-    po = {i[0]:i[1] for i in sorted(po.items())}
-    ve = {i[0]:i[1] for i in sorted(ve.items())}
-    print(f"A2: {0}")
+        for i in range(3):
+            if i not in xyz:
+                tmp = np.where(((pos[k,:,i] == pos[:k,:,i]) & (vel[k,:,i] == vel[:k,:,i])).all(axis=1))[0]
+                if tmp.shape[0] > 0 and i not in xyz:
+                    xyz.update({i: tuple(sorted(tmp)) + (k,)})
+    print(f"A2: {lcm(*tuple(v[1]-v[0] for k, v in xyz.items()))}")
 
 
 if __name__ == '__main__':
