@@ -55,7 +55,8 @@ def main():
         if tmp.shape[0] > 0:
             tmp = sorted(tmp) + [k]
             ve.update({tmp[0]: tuple(tmp[1:])})
-  #      if k%100000 == 0: print(f"{k/1000}, {'' if ve < 0 else ve}, {'' if po < 0 else po}")
+    po = {i[0]:i[1] for i in sorted(po.items())}
+    ve = {i[0]:i[1] for i in sorted(ve.items())}
     print(f"A2: {0}")
 
 
