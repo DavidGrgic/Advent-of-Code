@@ -14,25 +14,24 @@ _img_map = {0: ' ', 1: '#'}; _img_print = lambda x: print('\n'.join([''.join(_im
 def main():
 
     # Read
-    data = []
-    with open('tdata.txt', 'r') as file:
+    data = []; da = ()
+    with open('data.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             if ln == '': # Nov blok podatkov
-                pass
-            da = ln.split(',')
-            data += [da]
+                data += [da]
+                da = ()
+                continue
+            da += (int(ln),)
 
 
     # Part 1
     if True:
-
-        print(f"A1: {0}")
+        print(f"A1: {max(sum(i) for i in data)}")
           
     
     # Part 2
-
-    print(f"A2: {0}")
+    print(f"A2: {  sum(sorted((sum(i) for i in data), reverse = True)[:3])   }")
 
 
 if __name__ == '__main__':
