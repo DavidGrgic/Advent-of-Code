@@ -86,11 +86,11 @@ def main():
         res = {}
         pos = bas = 0
         dat = {i:v for i, v in enumerate(data)}
-        while True:
-            dat, out, pos, bas = intcode(dat, [], pos, bas, 3)
-            if pos < 0 or len(out) < 3:
-                break
-        print(f"A1: {0}")
+        dat, out, pos, bas = intcode(dat, [], pos, bas)
+        board = np.zeros((max(out[1::3])+1,max(out[0::3])+1)).astype(int)
+        for y,x,t in zip(out[1::3], out[0::3], out[2::3]):
+            board[y,x] = int(t)
+        print(f"A1: {(board==2).sum()}")
           
     
     # Part 2
