@@ -96,11 +96,16 @@ def main():
     # Part 2
     dat = {i:v for i, v in enumerate(data)}
     dat[0] = 2
+    pos = 0; bas = 0
     while True:
-        dat, out, pos, bas = intcode(dat, [0], pos, bas)
+        dat, out, pos, bas = intcode(dat, [0]*10, pos, bas)
         bor = np.zeros_like(board)
+        if out[-3] == -1:
+            sco = out[-1]
+            out = out[:-3]
         for y,x,t in zip(out[1::3], out[0::3], out[2::3]):
             bor[y,x] = int(t)
+        _img_print(bor)
     print(f"A2: {0}")
 
 
