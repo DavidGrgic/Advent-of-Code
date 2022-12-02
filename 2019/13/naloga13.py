@@ -9,7 +9,7 @@ from itertools import permutations, combinations, product
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
 import mat
-_img_map = {0: ' ', 1: '#'}; _img_print = lambda x: print('\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]))
+_img_map = {0: ' ', 1: '#', 2: 'x', 3: '_', 4: 'o'}; _img_print = lambda x: print('\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]))
 
 def main():
 
@@ -94,7 +94,13 @@ def main():
           
     
     # Part 2
-
+    dat = {i:v for i, v in enumerate(data)}
+    dat[0] = 2
+    while True:
+        dat, out, pos, bas = intcode(dat, [0], pos, bas)
+        bor = np.zeros_like(board)
+        for y,x,t in zip(out[1::3], out[0::3], out[2::3]):
+            bor[y,x] = int(t)
     print(f"A2: {0}")
 
 
