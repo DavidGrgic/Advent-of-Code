@@ -81,31 +81,46 @@ def main():
         return dat, _output, -1 if stop else pos, base
 
 
+    def board(out):
+        sco = None
+        if out[-3] == -1:
+            sco = out[-1]
+            out = out[:-3]
+        bor = np.zeros((max(out[1::3])+1,max(out[0::3])+1)).astype(int)
+        for y,x,t in zip(out[1::3], out[0::3], out[2::3]):
+            bor[y,x] = int(t)
+        bal = np.where(bor == 4)
+        pad = np.where(bor == 3)
+        return bor, (bal[0][0], bal[1][0]), (pad[0][0], pad[1][0]), sco
+
+
     # Part 1
     if True:
         res = {}
         pos = bas = 0
         dat = {i:v for i, v in enumerate(data)}
-        dat, out, pos, bas = intcode(dat, [], pos, bas)
-        board = np.zeros((max(out[1::3])+1,max(out[0::3])+1)).astype(int)
-        for y,x,t in zip(out[1::3], out[0::3], out[2::3]):
-            board[y,x] = int(t)
-        print(f"A1: {(board==2).sum()}")
+        _dat, out, _pos, _bas = intcode(dat.copy(), [], pos, bas)
+        bor0, bal0, pad0, sco = board(out)
+        print(f"A1: {(bor0==2).sum()}")
           
     
     # Part 2
-    dat = {i:v for i, v in enumerate(data)}
     dat[0] = 2
     pos = 0; bas = 0
-    while True:
-        dat, out, pos, bas = intcode(dat, [0]*10, pos, bas)
-        bor = np.zeros_like(board)
-        if out[-3] == -1:
-            sco = out[-1]
-            out = out[:-3]
-        for y,x,t in zip(out[1::3], out[0::3], out[2::3]):
-            bor[y,x] = int(t)
-        _img_print(bor)
+    mov = (1,1)  # Ce pozenemo board in ga izrisemo, je en block manj in žogica je na desni ter glede na stevilo polj sklepamo, da gre zogica dol, se odbije od pad, gre se enkrat gor in tam zbije en blok ter odbije nazj dol
+    ball = [bal0]
+    for i in range(10**4):
+        b = ball[-1]
+        tile = bor0[b[0]+mov[0],b[1]] 
+        if tile == 1:
+            pass
+        elif tile == 2:
+            pass
+        ball += [1]
+        
+    _dat, out, _pos, _bas = intcode(dat.copy(), [0]*3+[1]*6+[0]*100, pos, bas)
+    bor, bal, pad, sco = board(out)
+    _img_print(bor)
     print(f"A2: {0}")
 
 
