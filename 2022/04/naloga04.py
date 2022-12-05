@@ -18,28 +18,20 @@ def main():
     with open('data.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
-            da = (set(ln[:int(len(ln)/2)]), set(ln[int(len(ln)/2):]))
-            data += [da]
+            da = ln.split(',')
+            da = [[int(i) for i in d.split('-')] for d in da]
+            data += [tuple(set(range(i[0], i[1]+1)) for i in da)]
 
-    pri = lambda x: ord(x)-ord('a') + 1 if ord(x) >= ord('a') else ord(x)-ord('A') + 27
+
     # Part 1
     if True:
-        cist = []
-        ddup = []
-        for k in data:
-            dup = k[0].intersection(k[1])
-            cist += [k[0] | k[1]]
-            ddup += next(iter(dup))
-        print(f"A1: {sum(pri(i) for i in ddup)}")
+        r1 = [1 for i in data if len(i[0] | i[1]) == len(i[0]) or len(i[0] | i[1]) == len(i[1])]
+        print(f"A1: {sum(r1)}")
           
     
     # Part 2
-    comm = []
-    for k in range(0,len(cist),3):
-        cis = cist[k:k+3]
-        com = cis[0].intersection(cis[1]).intersection(cis[2])
-        comm += [next(iter(com))] 
-    print(f"A2: {sum(pri(i) for i in comm)}")
+    r2 = [1 for i in data if len(i[0].intersection(i[1])) > 0]
+    print(f"A2: {sum(r2)}")
 
 
 if __name__ == '__main__':
