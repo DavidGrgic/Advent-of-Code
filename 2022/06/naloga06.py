@@ -14,22 +14,22 @@ _img_map = {0: ' ', 1: '#'}; _img_print = lambda x: print('\n'.join([''.join(_im
 def main():
     # Read
     data = []
-    with open('tdata.txt', 'r') as file:
+    with open('data.txt', 'r') as file:
         for c, ln in enumerate(file):
-            ln = ln.replace('\n', '')
-            if ln == '': # Nov blok podatkov
-                pass
-            da = ln.split(',')
-            data += [da]
+            data = ln.replace('\n', '')
 
     # Part 1
     if True:
-        dat=copy.deepcopy(data)
-        print(f"A1: {0}")
+        for i in range(len(data)-4):
+            if len(set(data[i:i+4])) == 4:
+                break
+        print(f"A1: {i+4}")
 
     # Part 2
-    dat=copy.deepcopy(data)
-    print(f"A2: {0}")
+    for i in range(len(data)-14):
+        if len(set(data[i:i+14])) == 14:
+            break
+    print(f"A2: {i+14}")
 
 if __name__ == '__main__':
     main()

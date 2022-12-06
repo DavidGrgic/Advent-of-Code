@@ -25,6 +25,7 @@ def main():
 
     def intcode(dat, _input = [], pos = 0, base = 0, no_out = None):
         _output = []
+        _consumed = []
         address = lambda p, m: p+base if m == 2 else p
         value = lambda p, m: dat.get(address(dat[p],m), 0) if m in {0,2} else dat.get(p, 0)
         while True:
@@ -47,6 +48,7 @@ def main():
                 assert mod[0] in {0,2}
                 assert len(_input) > 0
                 dat[address(dat[pos+1], mod[0])] = _input[0]
+                _consumed += [_input[0]]
                 _input = _input[1:]
                 pos += 2
             elif ins == 4:
@@ -78,7 +80,7 @@ def main():
                 pos += 2
             else:
                 raise AssertionError
-        return dat, _output, -1 if stop else pos, base
+        return dat, _output, -1 if stop else pos, base, _consumed
 
 
     def board(out):
@@ -91,37 +93,51 @@ def main():
             bor[y,x] = int(t)
         bal = np.where(bor == 4)
         pad = np.where(bor == 3)
-        return bor, (bal[0][0], bal[1][0]), (pad[0][0], pad[1][0]), sco
+        return bor, (bal[0][0], bal[1][0]), (pad[0][0], pad[1][0]) if len(pad[0]) > 0 else None, sco
 
 
     # Part 1
     if True:
-        res = {}
-        pos = bas = 0
         dat = {i:v for i, v in enumerate(data)}
-        _dat, out, _pos, _bas = intcode(dat.copy(), [], pos, bas)
-        bor0, bal0, pad0, sco = board(out)
-        print(f"A1: {(bor0==2).sum()}")
-          
-    
+        _dat, out, _pos, _bas, _con = intcode(dat.copy())
+        bor, bal, pad, sco = board(out)
+        print(f"A1: {(bor==2).sum()}")
+
+    def play(inp0):
+        _dat, out, _pos, _bas, _inp = intcode(dat.copy(), inp0 + [0]*10000)
+        bor, bal, pad, sco = board(out)
+        num = (bor==2).sum()
+        if num == 0:
+            return _inp, True
+        if len(_inp) <= len(inp0):
+            return inp0, False
+        if pad is None:
+            return inp0, False
+        print('\n'); _img_print(bor[:-1,:])
+        dis = bal[1] - pad[1]
+        sig = np.sign(dis)
+        dis = abs(dis)
+        for i in {}.get(num, [0,-1,1,-2,2,-3,3]):
+            print(num, len(_inp), i)
+            ii = dis + i
+            col = pad[1]+ii*sig
+            if ii <= 0:
+                continue
+            if col < 0 or col >= bor.shape[1] or bor[pad[0], col] in {1,2}:
+                continue
+            inp = _inp[:-1].copy()  # Last two moves are already too late, e.g ball can not be recovered from here
+            if ii > len(inp) - len(inp0):
+                continue
+            inp[-ii:] = [sig] * ii
+            inp, stat = play(inp)
+            if stat:
+                return inp, stat
+        return inp0, False
+
     # Part 2
     dat[0] = 2
-    pos = 0; bas = 0
-    mov = (1,1)  # Ce pozenemo board in ga izrisemo, je en block manj in žogica je na desni ter glede na stevilo polj sklepamo, da gre zogica dol, se odbije od pad, gre se enkrat gor in tam zbije en blok ter odbije nazj dol
-    ball = [bal0]
-    for i in range(10**4):
-        b = ball[-1]
-        tile = bor0[b[0]+mov[0],b[1]] 
-        if tile == 1:
-            pass
-        elif tile == 2:
-            pass
-        ball += [1]
-        
-    _dat, out, _pos, _bas = intcode(dat.copy(), [0]*3+[1]*6+[0]*100, pos, bas)
-    bor, bal, pad, sco = board(out)
-    _img_print(bor)
-    print(f"A2: {0}")
+    inp, stat = play([])
+    print(f"A2: {inp}")
 
 
 if __name__ == '__main__':
