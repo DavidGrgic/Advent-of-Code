@@ -6,6 +6,7 @@ import pandas as pd, numpy as np
 from collections import Counter
 from fractions import Fraction
 from itertools import permutations, combinations, product
+from random import random
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
 import mat
@@ -113,12 +114,12 @@ def main():
             return inp0, False
         if pad is None:
             return inp0, False
-        print('\n'); _img_print(bor[:-1,:])
+        print('\n'); _img_print(bor[:-1,:]); print(num, len(_inp), end = ' ')
         dis = bal[1] - pad[1]
         sig = np.sign(dis)
         dis = abs(dis)
-        for i in {}.get(num, [0,-1,1,-2,2,-3,3]):
-            print(num, len(_inp), i)
+        for i in sorted({}.get(num, [0,-1,1,-2,2,-3,3]), key = lambda x: random()):
+            print(i, end = ' ')
             ii = dis + i
             col = pad[1]+ii*sig
             if ii <= 0:
@@ -137,7 +138,9 @@ def main():
     # Part 2
     dat[0] = 2
     inp, stat = play([])
-    print(f"A2: {inp}")
+    dat, out, _pos, _bas, _inp = intcode(dat.copy(), inp)
+    bor, bal, pad, sco = board(out)
+    print(f"\nA2: {sco}")
 
 
 if __name__ == '__main__':
