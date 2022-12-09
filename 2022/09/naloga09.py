@@ -30,33 +30,25 @@ def main():
         dat=copy.deepcopy(data)
         for i in dat:
             for j in range(i[1]):
-                
+
                 hed[0] += mov[i[0]][0]
-                hed[1] += mov[i[0]][1]
+                hed[1] += mov[i[0]][1] 
                 diag = (hed[0] != tal[0]) and (hed[1] != tal[1])
-                for kk in range(2):
-       #             k = kk if diag and i[0] in {'U', 'D'} else 1-kk
-                    k = kk if diag else 1-kk
-         #           k = kk if diag and i[0] in {'R', 'U'} else 1-kk
-                    if hed[k]-tal[k] > 0:
-                        tal[k] = hed[k]-1
-        #                if diag:
-       #                     tal[1-k] = hed[1-k]
-                    elif hed[k]-tal[k] < 0:
-                        tal[k] = hed[k]+1
-      #                  if diag:
-     #                       tal[1-k] = hed[1-k]
-                    elif diag:
-                        tal[1-k] = hed[1-k]
-                        diag = False
-       #             if (hed[k]-tal[k])**2 + (hed[1-k]-tal[1-k])**2 > 2:
-        #                tal[1-k] = hed[1-k]
-                print(hed, tal)
+                while abs(hed[1]-tal[1]) + abs(hed[0]-tal[0]) > 2 - int(not diag):
+                    if hed[1] != tal[1] and hed[0] != tal[0] and diag:
+                        tal[0] += np.sign(hed[0] - tal[0])
+                        tal[1] += np.sign(hed[1] - tal[1])
+                    else:
+                        for k in range(2):
+                            if abs(hed[k] - tal[k]) > 1:
+                                tal[k] += np.sign(hed[k] - tal[k])
                 his |= {tuple(tal)}
         print(f"A1: {len(his)}")
 
     # Part 2
     dat=copy.deepcopy(data)
+    rope = [[0,0]] * 10
+    his = {tuple(tal)}
     print(f"A2: {0}")
 
 if __name__ == '__main__':
