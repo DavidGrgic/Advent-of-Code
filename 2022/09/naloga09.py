@@ -37,15 +37,18 @@ def main():
                 for kk in range(2):
        #             k = kk if diag and i[0] in {'U', 'D'} else 1-kk
                     k = kk if diag else 1-kk
-                    k = kk if diag and i[0] in {'R', 'U'} else 1-kk
+         #           k = kk if diag and i[0] in {'R', 'U'} else 1-kk
                     if hed[k]-tal[k] > 0:
                         tal[k] = hed[k]-1
-                        if diag:
-                            tal[1-k] = hed[1-k]
+        #                if diag:
+       #                     tal[1-k] = hed[1-k]
                     elif hed[k]-tal[k] < 0:
                         tal[k] = hed[k]+1
-                        if diag:
-                            tal[1-k] = hed[1-k]
+      #                  if diag:
+     #                       tal[1-k] = hed[1-k]
+                    elif diag:
+                        tal[1-k] = hed[1-k]
+                        diag = False
        #             if (hed[k]-tal[k])**2 + (hed[1-k]-tal[1-k])**2 > 2:
         #                tal[1-k] = hed[1-k]
                 print(hed, tal)
