@@ -14,7 +14,7 @@ _img_map = {0: ' ', 1: '#'}; _img_print = lambda x: print('\n'.join([''.join(_im
 def main():
     # Read
     data = []
-    with open('tdata.txt', 'r') as file:
+    with open('data.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             da = ln.split(' ')
@@ -30,7 +30,6 @@ def main():
         dat=copy.deepcopy(data)
         for i in dat:
             for j in range(i[1]):
-
                 hed[0] += mov[i[0]][0]
                 hed[1] += mov[i[0]][1] 
                 diag = (hed[0] != tal[0]) and (hed[1] != tal[1])
@@ -47,9 +46,23 @@ def main():
 
     # Part 2
     dat=copy.deepcopy(data)
-    rope = [[0,0]] * 10
-    his = {tuple(tal)}
-    print(f"A2: {0}")
+    rope = [(0,0)] * 10
+    his = {tuple(rope[-1])}
+    for i in dat:
+        for j in range(i[1]):
+            rope[0] = rope[0][0] + mov[i[0]][0], rope[0][1] + mov[i[0]][1] 
+            for k in range(len(rope)-1):
+                diag = (rope[k][0] != rope[k+1][0]) and (rope[k][1] != rope[k+1][1])
+                while abs(rope[k][1]-rope[k+1][1]) + abs(rope[k][0]-rope[k+1][0]) > 2 - int(not diag):
+                    if rope[k][1] != rope[k+1][1] and rope[k][0] != rope[k+1][0] and diag:
+                        rope[k+1] = rope[k+1][0] + np.sign(rope[k][0] - rope[k+1][0]), rope[k+1][1] + np.sign(rope[k][1] - rope[k+1][1])
+                    else:
+                        if abs(rope[k][0] - rope[k+1][0]) > 1:
+                            rope[k+1] = rope[k+1][0] + np.sign(rope[k][0] - rope[k+1][0]), rope[k+1][1]
+                        if abs(rope[k][1] - rope[k+1][1]) > 1:
+                            rope[k+1] = rope[k+1][0], rope[k+1][1] + np.sign(rope[k][1] - rope[k+1][1])
+            his |= {tuple(rope[-1])}
+    print(f"A2: {len(his)}")
 
 if __name__ == '__main__':
     main()
