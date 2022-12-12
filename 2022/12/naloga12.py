@@ -30,7 +30,11 @@ def main():
     plus = lambda x, y: (x[0]+y[0],x[1]+y[1])
     xy = data.shape
 
+    global nnn
+    nnn = 10**6
+
     def pot(p):
+        global nnn
 #        print(p)
         res = set()
         for d in [(1,0),(-1,0),(0,1),(0,-1)]:
@@ -42,7 +46,10 @@ def main():
                 continue
             if n == end and data[n] <= data[p[-1]] + 1:
                 res = {p + (n,)}
+                nnn = len(p)
             if data[n] <= data[p[-1]] + 1:
+                if len(p) >= nnn:
+                    continue
                 ppp = pot(p+(n,))
                 res |= ppp
         return res
