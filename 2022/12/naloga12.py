@@ -8,6 +8,7 @@ from collections import Counter
 from fractions import Fraction
 from itertools import permutations, combinations, product
 import os, sys
+import networkx as nx
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
 _img_map = {0: ' ', 1: '#'}; _img_print = lambda x: print('\n'+'\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]))
 
@@ -30,40 +31,32 @@ def main():
     plus = lambda x, y: (x[0]+y[0],x[1]+y[1])
     xy = data.shape
 
-    global nnn
-    nnn = 10**6
-
-    def pot(p):
-        global nnn
-#        print(p)
-        res = set()
-        for d in [(1,0),(-1,0),(0,1),(0,-1)]:
-#            print(d)
-            n = plus(p[-1],d)
-            if n in p:
-                continue
-            if not (0 <= n[0] < xy[0] and 0 <= n[1] < xy[1]):
-                continue
-            if n == end and data[n] <= data[p[-1]] + 1:
-                res = {p + (n,)}
-                nnn = len(p)
-            if data[n] <= data[p[-1]] + 1:
-                if len(p) >= nnn:
-                    continue
-                ppp = pot(p+(n,))
-                res |= ppp
-        return res
-        
-
     # Part 1
     if True:
-#        dat=copy.deepcopy(data)
-        poti = pot((start,))
-        poti = [p for p in poti if p[-1] == end]
-        print(f"A1: {min([len(p) for p in poti])-1}")
+        graf = []
+        for i in range(xy[0]):
+            for j in range(xy[1]):
+                for d in [(1,0),(-1,0),(0,1),(0,-1)]:
+                    n = plus((i,j),d)
+                    if not (0 <= n[0] < xy[0] and 0 <= n[1] < xy[1]):
+                        continue
+                    if data[n] <= data[(i,j)] + 1:
+                        graf += [((i,j), n)]
+        G = nx.DiGraph()
+        G.add_edges_from(graf)
+
+        p1 = nx.shortest_path(G, start, end)
+        print(f"A1: {len(p1)-1}")
 
     # Part 2
-    print(f"A2: {0}")
+    sta = np.where((data == 0))
+    sta = {i for i in zip(sta[0], sta[1])}
+    p2 = {}
+    for k in sta:
+        try:
+            p2.update({k: len(nx.shortest_path(G, k, end))})
+        except nx.exception.NetworkXNoPath: None
+    print(f"A2: {min(p2.values())-1}")
 
 if __name__ == '__main__':
     main()
