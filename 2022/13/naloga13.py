@@ -13,19 +13,61 @@ _img_map = {0: ' ', 1: '#'}; _img_print = lambda x: print('\n'+'\n'.join([''.joi
 
 def main():
     # Read
-    data = []
-    with open('t.txt', 'r') as file:
+    data = {}
+    dat = ()
+    k = 1
+    with open('d.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             if ln == '': # Nov blok podatkov
-                pass
-            da = ln.split(',')
-            data += [da]
+                data.update({k: dat})
+                dat = ()
+                k += 1
+                continue
+            dat += (eval(ln),)
+
+
+    def compare(le, ri):
+        l = copy.deepcopy(le); r = copy.deepcopy(ri)
+        ret = None
+        if isinstance(l, int):
+            l = [l]
+        if isinstance(r, int):
+            r = [r]
+        for i in range(len(l)):
+            if len(r) < i+1:
+                ret = False
+                break
+            if sum((isinstance(l[i], list), isinstance(r[i], list))) >= 1:
+                re = compare(l[i], r[i])
+                if isinstance(re, bool):
+                    ret = re
+                    break
+                else:
+                    continue
+            if l[i] == r[i]:
+                continue
+            elif l[i] < r[i]:
+                ret = True
+                break
+            else:
+                ret = False
+                break
+        if ret is None and len(r) > len(l):
+            ret = True
+        return ret
 
     # Part 1
     if True:
-        dat=copy.deepcopy(data)
-        print(f"A1: {0}")
+        p1 = set()
+        for k, v in data.items():
+            pp = compare(*v)
+            if pp is None:
+                p1 |= {k}
+            elif pp:
+                p1 |= {k}
+        print(f"A1: {sum(p1)}")
+        #5675
 
     # Part 2
     dat=copy.deepcopy(data)
