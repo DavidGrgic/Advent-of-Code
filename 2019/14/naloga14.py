@@ -35,42 +35,36 @@ def main():
                 ore |= {((chm,nn,i[0]),)+j for j in  pth(i[1])}
         return ore
 
-    # def cons(num, chm):
-    #     nn, dep = data[chm]
-    #     mul = cup(num, nn)
-    #     ostanek.update({chm: ostanek.get(chm, 0) + mul * nn - num})
-
-    #     ore = 0
-    #     for i in dep:
-    #         poraba = mul * i[0]
-    #         reciklacija = min(poraba, ostanek.get(i[1],0))
-    #         ostanek.update({i[1]: ostanek.get(i[1], 0) - reciklacija})
-    #         potreba = poraba - reciklacija
-    #         if i[1] == 'ORE':
-    #             ore += potreba
-    #         else:
-    #             ore += cons(*i)
-    #     return ore
-    # ostanek = {}
-
     # Part 1
     if True:
         red = ['FUEL', 'ORE']
         delo = pth(red[0])
-        for pot in {tuple(j[0] for j in i) for i in delo}:
-            if pot == tuple(red):
-                continue
-            j = 0
-            for r in pot:
-                if r == red[j]:
-                    pass
-                elif not r in red[j:]:
-                    red.insert(j, r)
-                j += 1
-        
-        print(f"A1: {0}")
-          
-    
+
+        surovine = {j[0] for i in delo for j in i}
+        depend = {}
+        for s in surovine:
+            dep = set()
+            for dd in delo:
+                d = [d[0] for d in dd]
+                if s in d:
+                    dep |= set(d[d.index(s)+1:])
+            depend.update({s: dep})
+
+        red = []
+        while len(red) < len(depend):
+            red = [k for k, v in depend.items() if all(i in red for i in v) and k not in red] + red
+        material = {'FUEL': 1}
+        for r in red:
+            if r == 'ORE':
+                break
+            num = material[r]
+            nn, dep = data[r]
+            mul = cup(num, nn)
+            material.update({r: material.get(r,0) - num})
+            for i in dep:
+                material.update({i[1]: material.get(i[1],0) + mul * i[0]})
+        print(f"A1: {material.get('ORE', 0)}")
+
     # Part 2
 
     print(f"A2: {0}")
