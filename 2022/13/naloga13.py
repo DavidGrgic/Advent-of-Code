@@ -25,37 +25,33 @@ def main():
                 k += 1
                 continue
             dat += (eval(ln),)
-
+    if len(dat) == 2:
+        data.update({k: dat})
 
     def compare(le, ri):
         l = copy.deepcopy(le); r = copy.deepcopy(ri)
-        ret = None
         if isinstance(l, int):
             l = [l]
         if isinstance(r, int):
             r = [r]
         for i in range(len(l)):
             if len(r) < i+1:
-                ret = False
-                break
+                return False
             if sum((isinstance(l[i], list), isinstance(r[i], list))) >= 1:
-                re = compare(l[i], r[i])
-                if isinstance(re, bool):
-                    ret = re
-                    break
+                ret = compare(l[i], r[i])
+                if isinstance(ret, bool):
+                    return ret
                 else:
                     continue
             if l[i] == r[i]:
                 continue
             elif l[i] < r[i]:
-                ret = True
-                break
+                return True
             else:
-                ret = False
-                break
-        if ret is None and len(r) > len(l):
-            ret = True
-        return ret
+                return False
+        if len(l) < len(r):
+            return True
+        return None
 
     # Part 1
     if True:
@@ -67,11 +63,21 @@ def main():
             elif pp:
                 p1 |= {k}
         print(f"A1: {sum(p1)}")
-        #5675
 
     # Part 2
-    dat=copy.deepcopy(data)
-    print(f"A2: {0}")
+    dod = [  [[2]]  ,  [[6]]  ]
+    dat = [j for k, v in data.items() for j in v] + dod
+    k = 0
+    while k < len(dat)-1:
+        _l = copy.deepcopy(dat[k])
+        _r = copy.deepcopy(dat[k+1])
+        if compare(_l,_r):
+            k += 1
+        else:
+            dat[k] = _r
+            dat[k+1] = _l
+            k = max(k-1,0)
+    print(f"A2: {math.prod(list(dat).index(i)+1 for i in dod)}")
 
 if __name__ == '__main__':
     main()
