@@ -37,7 +37,13 @@ def main():
                         pro.update({(x,y):1})
         return pro
 
-            
+    def plot(pro):
+        offset = tuple(min(min(i[j] for i in pro),0 if j == 1 else 10**10) for j in range(2))
+        x = np.zeros(tuple(max(i[j] for i in pro) - offset[j] + 1 for j in range(2)))
+        for k, v in pro.items():
+            x[plu(k, (-offset[0],-offset[1]))] = v
+        _img_print(x.T)
+
     # Part 1
     if True:
         pro=copy.deepcopy(prostor(data))
@@ -58,13 +64,12 @@ def main():
                 else:
                     pro.update({xy:2})
                     break
-        
         print(f"A1: {len({k for k, v in pro.items() if v == 2})}")
+        #plot(pro)
 
     # Part 2
-    pro=copy.deepcopy(prostor(data + [[(0, y_max + 2), (1000, y_max + 2)]]))
+    pro=copy.deepcopy(prostor(data + [[(500-y_max-10, y_max + 2), (500+y_max+10, y_max + 2)]]))
     doit = True
-    sand = 0
     while doit:
         xy = (500, 0)
         while True:
@@ -77,11 +82,10 @@ def main():
             else:
                 pro.update({xy:2})
                 break
-        if len({k for k, v in pro.items() if v == 2}) > sand:
-            sand = len({k for k, v in pro.items() if v == 2})
-        else:
+        if xy == (500,0):
             doit = False            
     print(f"A2: {len({k for k, v in pro.items() if v == 2})}")
+    #plot(pro)
 
 if __name__ == '__main__':
     main()
