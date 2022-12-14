@@ -3,6 +3,7 @@
 @author: David Grgic
 """
 import pandas as pd, numpy as np
+import networkx as nx
 import copy
 from collections import Counter
 from fractions import Fraction
@@ -10,19 +11,18 @@ from itertools import permutations, combinations, product
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
 import mat
-_img_map = {0: '#', 1: ' ', 2: 'O', -1: 'x', -2: 's', -5: '.'}; _img_print = lambda x: print('\n'+'\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]))
+_img_map = {0: '#', 1: ' ', 2: 'O', -1: 's', -5: '.'}; _img_print = lambda x: print('\n'+'\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]))
 
 def main():
 
     plus = lambda x, y: (x[0]+y[0],x[1]+y[1])    
 
-    def plot(pro, r):
+    def plot(pro):
         offset = tuple(min(min(i[j] for i in pro),0 if j == 1 else 10**10) for j in range(2))
         x = np.zeros(tuple(max(i[j] for i in pro) - offset[j] + 1 for j in range(2))).astype(int)-5
         for k, v in pro.items():
             x[plus(k, (-offset[0],-offset[1]))] = v
-        x[plus(r, (-offset[0],-offset[1]))] = -1
-        x[plus((0,0), (-offset[0],-offset[1]))] = -2
+        x[plus((0,0), (-offset[0],-offset[1]))] = -1
         _img_print(x.T)    
 
     def intcode(dat, _input = [], pos = 0, base = 0, no_out = None):
@@ -97,27 +97,42 @@ def main():
         prostor = {(0,0): 1}
         xy = next(iter(prostor))
         mov = {1: (-1,0), 3: (0,-1), 2: (1,0), 4: (0,1)}
-        prefered = lambda d, M = list(mov.keys()): M[M.index(d):] + M[:M.index(d)]
+        prefered ={1: (3,1,4,2), 3: (2,3,1,4), 2: (4,2,3,1), 4: (1,4,2,3)}
         smer = 1
+        skozi_0 = 0
         while True:
+            if xy == (0,0):
+                skozi_0 += 1
             _xy = plus(xy, mov[smer])
             dat, stat, pos, base, _cons = intcode(dat, [smer], pos, base, 1)
             stat = next(iter(stat))
             prostor.update({_xy: stat})
             if stat != 0:
                 xy = _xy
-                if stat == 2:
+                if skozi_0 >= 5 and 2 in prostor.values():
                     break
             smeri = {k for k, v in mov.items() if plus(xy, mov[k]) not in prostor} # Prefer searching unknown teritory
             if len(smeri) == 0:
                 smeri = {k for k, v in mov.items() if prostor.get(plus(xy, mov[k]),-1) != 0}
-#            smer = next(iter(sorted(smeri, key = lambda x: np.random.random())))
-            smer = next(iter(i for i in prefered(smer) if i in smeri))
-            plot(prostor, xy)
-        print(f"A1: {0}")
+                if len(smeri) == 4: # Sredi praznega že raziskanega prostora se želimo pomikati v naključno smer
+                    smeri = {next(iter(sorted(smeri, key = lambda x: np.random.random())))}
+            smer = next(iter(i for i in prefered[smer] if i in smeri))
+        plot(prostor)
+        hodnik = {k for k, v in prostor.items() if v >= 1}
+        graf = {tuple(sorted([k, plus(k, mov[d])])) for k in hodnik for d, m in mov.items() if plus(k, mov[d]) in hodnik}
+        G = nx.Graph()
+        G.add_edges_from(list(graf))
+        oxi = next(iter({k for k, v in prostor.items() if v == 2}))
+        p1 = nx.shortest_path(G, (0,0), oxi)
+        print(f"A1: {len(p1)-1}")
 
     # Part 2
-    print(f"A2: {0}")
+    oxi = {oxi}
+    k = 0
+    while len(oxi) < len(hodnik):
+        oxi |= {plus(k, mov[d]) for k in oxi for d, m in mov.items() if plus(k, mov[d]) in hodnik}
+        k += 1
+    print(f"A2: {k}")
 
 if __name__ == '__main__':
     main()
