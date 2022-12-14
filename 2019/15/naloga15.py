@@ -10,17 +10,19 @@ from itertools import permutations, combinations, product
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
 import mat
-_img_map = {0: '#', 1: '.', 2: 'O'}; _img_print = lambda x: print('\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]))
+_img_map = {0: '#', 1: ' ', 2: 'O', -1: 'x', -2: 's', -5: '.'}; _img_print = lambda x: print('\n'+'\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]))
 
 def main():
 
     plus = lambda x, y: (x[0]+y[0],x[1]+y[1])    
 
-    def plot(pro):
+    def plot(pro, r):
         offset = tuple(min(min(i[j] for i in pro),0 if j == 1 else 10**10) for j in range(2))
-        x = np.zeros(tuple(max(i[j] for i in pro) - offset[j] + 1 for j in range(2)))
+        x = np.zeros(tuple(max(i[j] for i in pro) - offset[j] + 1 for j in range(2))).astype(int)-5
         for k, v in pro.items():
             x[plus(k, (-offset[0],-offset[1]))] = v
+        x[plus(r, (-offset[0],-offset[1]))] = -1
+        x[plus((0,0), (-offset[0],-offset[1]))] = -2
         _img_print(x.T)    
 
     def intcode(dat, _input = [], pos = 0, base = 0, no_out = None):
@@ -87,36 +89,35 @@ def main():
     with open('data.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
-            data = {k:v for k, v in enumerate(ln.split(','))}
-
+            data = {k:int(v) for k, v in enumerate(ln.split(','))}
 
     # Part 1
     if True:
         dat = copy.deepcopy(data); pos = 0; base = 0
         prostor = {(0,0): 1}
         xy = next(iter(prostor))
-        mov = {1: (-1,0), 2: (1,0), 3: (0,-1), 4: (0,1)}
+        mov = {1: (-1,0), 3: (0,-1), 2: (1,0), 4: (0,1)}
+        prefered = lambda d, M = list(mov.keys()): M[M.index(d):] + M[:M.index(d)]
         smer = 1
         while True:
             _xy = plus(xy, mov[smer])
             dat, stat, pos, base, _cons = intcode(dat, [smer], pos, base, 1)
+            stat = next(iter(stat))
             prostor.update({_xy: stat})
             if stat != 0:
                 xy = _xy
                 if stat == 2:
                     break
-            smeri = [k for k, v in mov.items() if plus(xy, mov[k]) not in prostor] # Prefer searching unknown teritory
+            smeri = {k for k, v in mov.items() if plus(xy, mov[k]) not in prostor} # Prefer searching unknown teritory
             if len(smeri) == 0:
-                smeri = [k for k, v in mov.items() if prostor.get(plus(xy, mov[k]),-1) != 0]
-            smer = next(iter(sorted(smeri, key = lambda x: np.random.random())))
-            plot(prostor)
+                smeri = {k for k, v in mov.items() if prostor.get(plus(xy, mov[k]),-1) != 0}
+#            smer = next(iter(sorted(smeri, key = lambda x: np.random.random())))
+            smer = next(iter(i for i in prefered(smer) if i in smeri))
+            plot(prostor, xy)
         print(f"A1: {0}")
-          
-    
+
     # Part 2
-
     print(f"A2: {0}")
-
 
 if __name__ == '__main__':
     main()
