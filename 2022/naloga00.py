@@ -9,7 +9,7 @@ import pandas as pd, numpy as np
 #from itertools import permutations, combinations, product
 #import networkx as nx   # G = nx.DiGraph(); G.add_edges_from([('Start', 'B'), ('B', 'C'), ('Start', 'C'), ('C', 'End')]); nx.shortest_path(G, 'Start', 'End')
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
-_img_map = {0: ' ', 1: '#'}; _img_print = lambda x: print('\n'+'\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]))
+_img_map = {0: ' ', 1: '#'}; _img_print = lambda x: print('\n'+'\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x])); _dict2img = lambda x: (lambda o = tuple(min(i[j] for i in x) for j in range(2)): o)()
 
 def main():
     # Read
