@@ -19,7 +19,7 @@ def _dict2img(x):
 def main():
     # Read
     data = {}
-    with open('t.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             da = ln.split(';')
@@ -28,37 +28,45 @@ def main():
             m = da[1].replace(' tunnels lead to valves ', '').replace(' tunnel leads to valve ', '').split(', ')
             data.update({k: (int(kn[1]), set(m))})
 
-    tt = 15
+    tt = 30
 
-    def poti(vv, t = -1, obiskani = set(), nazaj = set()):
-        t += 1
-        obiskani |= {vv}
-        if t >= tt:
-            return {((vv, False, t),)}
+    def poti(obiskani, odprti = set(), t0 = 0):
+        vv = obiskani[-1]
         pot = set()
-        for odprt in {True, False}:
-            if odprt:
-                t += 1
-                if t >= tt:
-                    return {((vv, False, t),)}
-            po = []
-            for i in dat[vv][1] - (obiskani - nazaj):
-                po = poti(i, t, obiskani, {vv})
-            if len(po) == 0:
-                pot |= {((vv, False, t),)}
-            else:
-                pot |= {((vv, odprt, t),) + i for i in po}
-        return pot
-        
+        for i, d in dat[vv][1].items():# - set(obiskani[:-2]):
+            for odpri in {False} if vv in odprti else {True, False}:
+                if not odpri and i in obiskani[-2:]:
+                    continue   # Nisma smisla iti k ventilu, ga ne odpreti in se vrniti nazaj
+                _t = t0 + odpri
+                izpust = odpri * dat[vv][0] * max((tt - _t),0)
+                if _t+d >= tt-1 or set(obiskani) == set(dat):
+                    pot |= {((vv, odpri, izpust, _t),)}
+                else:
+                    po = poti(obiskani + [i], odprti | ({vv} if odpri else set()), _t+d)
+                    pot |= {((vv, odpri, izpust, _t),) + i for i in po}
+        return set((next(iter(sorted(pot, key = lambda x: sum(i[2] for i in x), reverse = True))),)) if len(pot) > 0 else pot
 
+    def comp(vv):
+        res = {}
+        for v in data[vv[-1]][1] - set(vv):
+            if data[v][0] == 0:
+                dis = comp(vv + [v])
+                res |= {k: d+1 for k, d in dis.items()}
+            else:
+                res.update({v: 1})
+        return res
+
+    start = 'AA'
+    dat = {}
+    for k in {k for k, v in data.items() if v[0] != 0} | {start}:
+        dis = comp([k])
+        dat.update({k: (data[k][0], dis)})
     # Part 1
     if True:
-        dat=copy.deepcopy(data)
-        p1 = poti('AA')
-        print(f"A1: {0}")
+        p1 = poti([(start)])
+        print(f"A1: {max([sum(i[2] for i in p) for p in p1])}")
 
     # Part 2
-    dat=copy.deepcopy(data)
     print(f"A2: {0}")
 
 if __name__ == '__main__':
