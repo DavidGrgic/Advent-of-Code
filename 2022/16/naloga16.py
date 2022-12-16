@@ -18,18 +18,43 @@ def _dict2img(x):
 
 def main():
     # Read
-    data = []
+    data = {}
     with open('t.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
-            if ln == '': # Nov blok podatkov
-                pass
-            da = ln.split(',')
-            data += [da]
+            da = ln.split(';')
+            kn = da[0].split(' has flow rate=')
+            k = kn[0].replace('Valve ','')
+            m = da[1].replace(' tunnels lead to valves ', '').replace(' tunnel leads to valve ', '').split(', ')
+            data.update({k: (int(kn[1]), set(m))})
+
+    tt = 15
+
+    def poti(vv, t = -1, obiskani = set(), nazaj = set()):
+        t += 1
+        obiskani |= {vv}
+        if t >= tt:
+            return {((vv, False, t),)}
+        pot = set()
+        for odprt in {True, False}:
+            if odprt:
+                t += 1
+                if t >= tt:
+                    return {((vv, False, t),)}
+            po = []
+            for i in dat[vv][1] - (obiskani - nazaj):
+                po = poti(i, t, obiskani, {vv})
+            if len(po) == 0:
+                pot |= {((vv, False, t),)}
+            else:
+                pot |= {((vv, odprt, t),) + i for i in po}
+        return pot
+        
 
     # Part 1
     if True:
         dat=copy.deepcopy(data)
+        p1 = poti('AA')
         print(f"A1: {0}")
 
     # Part 2
