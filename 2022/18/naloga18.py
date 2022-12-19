@@ -34,6 +34,8 @@ def main():
         return surf
 
     def flood(droplet):
+        plus = lambda x, y: (x[0]+y[0], x[1]+y[1], x[2]+y[2])
+        
         droplet = copy.deepcopy(droplet)
         voda = 0
         for v in product(*tuple((0, droplet.shape[r]-1) for r in range(3))):
@@ -41,12 +43,11 @@ def main():
         while (droplet == 2).sum() != voda:
             voda = (droplet == 2).sum()
             for x,y,z in zip(*np.where(droplet == 2)):
-                if x-1 >= 0 and droplet[x-1,y,z] == 0: droplet[x-1,y,z] = 2
-                if y-1 >= 0 and droplet[x,y-1,z] == 0: droplet[x,y-1,z] = 2
-                if z-1 >= 0 and droplet[x,y,z-1] == 0: droplet[x,y,z-1] = 2
-                if x+1 < droplet.shape[0] and droplet[x+1,y,z] == 0: droplet[x+1,y,z] = 2
-                if y+1 < droplet.shape[1] and droplet[x,y+1,z] == 0: droplet[x,y+1,z] = 2
-                if z+1 < droplet.shape[2] and droplet[x,y,z+1] == 0: droplet[x,y,z+1] = 2
+                for d in (lambda I = (0,0,0): {I[:i]+(v,)+I[i+1:] for i in range(3) for v in {1,-1}})():
+                    _xyz = plus((x,y,z), d)
+                    try:
+                        if droplet[_xyz] == 0: droplet[_xyz] = 2
+                    except: IndexError
         return droplet
 
     # Part 1
