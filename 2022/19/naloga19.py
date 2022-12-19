@@ -2,8 +2,9 @@
 """
 @author: David Grgic
 """
-import math, copy, os, sys
+import math, copy, os, sys, time
 import pandas as pd, numpy as np
+from joblib import Parallel, delayed
 #from collections import Counter
 #from fractions import Fraction
 #from itertools import permutations, combinations, product
@@ -15,6 +16,33 @@ def _dict2img(x):
     img = np.zeros(tuple(int(max(i[j] for i in x.keys())-offset[j])+1 for j in range(2))).astype(int)
     img[tuple(tuple(int(i[j]-offset[j]) for i in x.keys()) for j in range(2))] = list(x.values())
     return img
+
+def blueprint(k, plan, tt = 24):
+    
+    def delaj(rob, inv, wsh = None , t = 0):
+        if wsh == None:
+            wsh = set(rob)
+        t += 1
+        if t > tt:
+            return [(rob, inv)]
+        dostopni = {kk for kk in rob.keys() if all(inv[k] >= v for k, v in plan[kk].items())}  # Katere robote lahkonaredimo, e.g. kateri so nam dostopni glede na material
+        opcije = [(rob.copy(), {k: r + inv[k] for k, r in rob.items()}, set(rob) - dostopni)]  # Ne kupimo robota ampak samo produciramo rudo. To je smielno narediti samo če v naslednjem koraku delamo robota, ki ga nismo morali narediti v tem koraku
+        for kk in dostopni & wsh:  # Kupimo katerega od robotov?
+            if kk in {'o', 'c', 'b'} and rob[kk] > max(v.get(kk, 0) for k, v in plan.items() if k != kk): # Ce ze produciramo vec kk kot jo potrebuje najdrazji ostali robot za to rudo, potem nima smisla narediti robota kk
+                continue
+            _ro = {k: v + (1 if k == kk else 0) for k, v in rob.items()}
+            _in = {k: r + inv[k] - plan[kk].get(k,0) for k, r in rob.items()} 
+            opcije += [(_ro, _in, None)]
+        res = []
+        for kk in opcije:
+            go = delaj(*(kk + (t,)))
+            res += go
+        best = max(i[1]['g'] for i in res)
+        return [i for i in res if i[1]['g'] >= best][:1]
+            
+    rob = {'o': 1} | {k: 0 for k in {'c', 'b', 'g'}}
+    inv = {k: 0 for k in {'o', 'c', 'b', 'g'}}
+    return {k: delaj(rob, inv)[0]}
 
 def main():
     # Read
@@ -32,41 +60,17 @@ def main():
             dat.update({'g': {'o': int(d[0]), 'b': int(d[1])}})
             data.update({int(_dat[0]): dat})
 
-    def delaj(rob, inv, plan, t = 0):
-        inv = {k: r + inv.get(k,0) for k, r in rob.items()}
-        t += 1
-        if t >= tt:
-            return inv['g']
-        opcije = {(copy.deepcopy(rob), copy.deepcopy(inv))}
-        for kk in {'o', 'c', 'b', 'g'}:
-            op = {k: v for k, v in plan[kk].items() if inv[k] >= v}
-            if len(op) > 0:
-                _in = {k: v - op.get(k,0) for k, v in inv.items()}
-                _ro = {k: v + (1 if k == kk else 0) for k, v in rob.items()}
-            opcije |= {(_ro, _in)}
-        good = 0
-        for kk in opcije:
-            max(good, delaj(*(kk + (plan, t))))
-        return good
-
-
     # Part 1
-    tt = 24
     if True:
-        for k, plan in data.items():
-            rob = {'o': 1} | {k: 0 for k in {'c', 'b', 'g'}}
-            inv = {k: 0 for k in {'o', 'c', 'b', 'g'}}
-            delaj (rob, inv, plan)
-            
-            # clay = (co) * ore
-            # obsi = (bo + bo*co) * ore
-            # good = (go + gb*bo +gb*bo*co) * ore
-
-        print(f"A1: {0}")
+        p1 = Parallel(-1 if len(data) > 1 and sys.gettrace() is None else 1)(delayed(blueprint)(k, v) for k, v in data.items())
+        p1 = {k: v for i in p1 for k, v in i.items()}
+        print(f"A1: {sum(k * v[1]['g'] for k, v in p1.items())}")
 
     # Part 2
-    dat=copy.deepcopy(data)
-    print(f"A2: {0}")
+    dat = {k: data[k] for k in range(1,4)}
+    p2 = Parallel(-1 if len(data) > 1 and sys.gettrace() is None else 1)(delayed(blueprint)(k, v, 32) for k, v in dat.items())
+    p2 = {k: v for i in p2 for k, v in i.items()}
+    print(f"A2: {math.prod(i[1]['g'] for i in p2.values())}")
 
 if __name__ == '__main__':
     main()
