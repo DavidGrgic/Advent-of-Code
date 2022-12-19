@@ -34,9 +34,21 @@ def main():
 
     def delaj(rob, inv, plan, t = 0):
         inv = {k: r + inv.get(k,0) for k, r in rob.items()}
-        opcije = []
-        for kk in {'c', 'b', 'g'}:
-            if inv[pnan['kk']] > plan['g']
+        t += 1
+        if t >= tt:
+            return inv['g']
+        opcije = {(copy.deepcopy(rob), copy.deepcopy(inv))}
+        for kk in {'o', 'c', 'b', 'g'}:
+            op = {k: v for k, v in plan[kk].items() if inv[k] >= v}
+            if len(op) > 0:
+                _in = {k: v - op.get(k,0) for k, v in inv.items()}
+                _ro = {k: v + (1 if k == kk else 0) for k, v in rob.items()}
+            opcije |= {(_ro, _in)}
+        good = 0
+        for kk in opcije:
+            max(good, delaj(*(kk + (plan, t))))
+        return good
+
 
     # Part 1
     tt = 24
