@@ -24,25 +24,25 @@ def blueprint(k, plan, tt = 24):
             wsh = set(rob)
         t += 1
         if t > tt:
-            return [(rob, inv)]
+            return inv['g']
         dostopni = {kk for kk in rob.keys() if all(inv[k] >= v for k, v in plan[kk].items())}  # Katere robote lahkonaredimo, e.g. kateri so nam dostopni glede na material
         opcije = [(rob.copy(), {k: r + inv[k] for k, r in rob.items()}, set(rob) - dostopni)]  # Ne kupimo robota ampak samo produciramo rudo. To je smielno narediti samo če v naslednjem koraku delamo robota, ki ga nismo morali narediti v tem koraku
         for kk in dostopni & wsh:  # Kupimo katerega od robotov?
-            if kk in {'o', 'c', 'b'} and rob[kk] > max(v.get(kk, 0) for k, v in plan.items() if k != kk): # Ce ze produciramo vec kk kot jo potrebuje najdrazji ostali robot za to rudo, potem nima smisla narediti robota kk
+            if kk in prednost and rob[kk] >= prednost[kk]:   # Ce ze produciramo vec kk kot jo potrebuje najdrazji ostali robot za to rudo, potem nima smisla narediti robota kk
                 continue
             _ro = {k: v + (1 if k == kk else 0) for k, v in rob.items()}
             _in = {k: r + inv[k] - plan[kk].get(k,0) for k, r in rob.items()} 
             opcije += [(_ro, _in, None)]
-        res = []
+        res = 0
         for kk in opcije:
             go = delaj(*(kk + (t,)))
-            res += go
-        best = max(i[1]['g'] for i in res)
-        return [i for i in res if i[1]['g'] >= best][:1]
+            res = max(go, res)
+        return res
             
     rob = {'o': 1} | {k: 0 for k in {'c', 'b', 'g'}}
     inv = {k: 0 for k in {'o', 'c', 'b', 'g'}}
-    return {k: delaj(rob, inv)[0]}
+    prednost = {kk: max(v.get(kk, 0) for k, v in plan.items() if k != kk) for kk in {j for i in plan.values() for j in i}}
+    return {k: delaj(rob, inv)}
 
 def main():
     # Read
@@ -64,13 +64,13 @@ def main():
     if True:
         p1 = Parallel(-1 if len(data) > 1 and sys.gettrace() is None else 1)(delayed(blueprint)(k, v) for k, v in data.items())
         p1 = {k: v for i in p1 for k, v in i.items()}
-        print(f"A1: {sum(k * v[1]['g'] for k, v in p1.items())}")
+        print(f"A1: {sum(k * v for k, v in p1.items())}")
 
     # Part 2
-    dat = {k: data[k] for k in range(1,4)}
+    dat = {k: data[k] for k in range(1,4) if k in data}
     p2 = Parallel(-1 if len(data) > 1 and sys.gettrace() is None else 1)(delayed(blueprint)(k, v, 32) for k, v in dat.items())
     p2 = {k: v for i in p2 for k, v in i.items()}
-    print(f"A2: {math.prod(i[1]['g'] for i in p2.values())}")
+    print(f"A2: {math.prod(p2.values())}")
 
 if __name__ == '__main__':
     main()
