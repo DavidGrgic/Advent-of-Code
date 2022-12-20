@@ -19,63 +19,49 @@ def _dict2img(x):
 def main():
     # Read
     data = []
-    with open('t.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         for c, ln in enumerate(file):
             data += [int(ln.replace('\n', ''))]
 
-    def after(dat, ite, num = 0):
-        for i in range(ite):
-            num = dat[num]
-        return num
+    def after(wrap, ite, n = 0):
+        p = show(wrap).index(0)
+        return wrap[(p+ite) % len(wrap)][1]
 
-    def show():
-        res = []
-        assert len(data) == len(dat)
-        if len(data) > 0:
-            run = 0
-            for _ in range(len(data)):
-                res.append(data[run])
-                run = dat[run]
-        return res
+    show = lambda wrap: [i[1] for i in wrap]
 
-#    data = [5,1,2]
+    def mix(data = data, num = 1):
+        wrap = [(i, v) for i, v in enumerate(data)]
+        _wrap = copy.deepcopy(wrap)
+        l = len(wrap)
+        for _ in range(num):
+            for i, _m in _wrap:
+                if _m % l == 0:
+                    continue
+                elif _m < 0: # Premakni v levo
+                    levo = True
+                    m = -_m
+                    wrap = wrap[::-1]
+                else:
+                    levo = False
+                    m = _m
+                p = wrap.index((i,_m))
+                wrap = wrap[:p] + wrap[p+1:]
+                m = (p + m) % (l-1)
+                wrap = wrap[:m] + [(i,_m)] + wrap[m:]
+                if levo:
+                    wrap = wrap[::-1]
+        return wrap
 
     # Part 1
     if True:
-        idx = list(range(len(data)))
-        for i, v in enumerate(data):
-            
-            
-        
-        
-        
-        dat = {i: i+1 if i+1 < len(data) else 0 for i in range(len(data))}
-        for i in data:
-            if i == 0:# or abs(i) in {len(dat),len(dat)-1}:
-                continue
-            inv = {v: k for k, v in dat.items()}
-            nxt = _nxt = dat[data.index(i)]
-            pre = _pre = inv[data.index(i)]
-            dat[_pre] = _nxt
-            del dat[data.index(i)]
-            for _ in range(abs(i)):
-                if i > 0:
-                    pre = nxt
-                    nxt = dat[nxt]
-                else:
-                    nxt = pre
-                    pre = inv[pre]
-            dat[pre] = data.index(i)
-            dat[data.index(i)] = nxt
-   #         dat[_pre] = _nxt
-
-        print(f"A1: {sum(data[after(dat, i * 1000, data.index(0))] for i in range(1,4))}")
-        # 7407 is too low
-        # 20985 is to high
+        wrp = mix(data)
+        print(f"A1: {sum(after(wrp, i * 1000) for i in range(1,4))}")
 
     # Part 2
-    dat=copy.deepcopy(data)
-    print(f"A2: {0}")
+    key = 811589153
+    dat = [i * key for i in data]
+    wrp = mix(dat, 10)
+    print(f"A2: {sum(after(wrp, i * 1000) for i in range(1,4))}")
 
 if __name__ == '__main__':
     main()
