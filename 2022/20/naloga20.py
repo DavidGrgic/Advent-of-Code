@@ -19,7 +19,7 @@ def _dict2img(x):
 def main():
     # Read
     data = []
-    with open('d.txt', 'r') as file:
+    with open('t.txt', 'r') as file:
         for c, ln in enumerate(file):
             data += [int(ln.replace('\n', ''))]
 
@@ -27,6 +27,18 @@ def main():
         for i in range(ite):
             num = dat[num]
         return num
+
+    def show():
+        res = []
+        assert len(data) == len(dat)
+        if len(data) > 0:
+            run = 0
+            for _ in range(len(data)):
+                res.append(data[run])
+                run = dat[run]
+        return res
+
+#    data = [5,1,2]
 
     # Part 1
     if True:
