@@ -42,16 +42,23 @@ def main():
 
     # Part 1
     if True:
+        idx = list(range(len(data)))
+        for i, v in enumerate(data):
+            
+            
+        
+        
+        
         dat = {i: i+1 if i+1 < len(data) else 0 for i in range(len(data))}
         for i in data:
-            if i == 0 or abs(i) in {len(dat),len(dat)-1}:
+            if i == 0:# or abs(i) in {len(dat),len(dat)-1}:
                 continue
             inv = {v: k for k, v in dat.items()}
             nxt = _nxt = dat[data.index(i)]
             pre = _pre = inv[data.index(i)]
             dat[_pre] = _nxt
             del dat[data.index(i)]
-            for _ in range(abs(i) + abs(i) // len(dat)):
+            for _ in range(abs(i)):
                 if i > 0:
                     pre = nxt
                     nxt = dat[nxt]
