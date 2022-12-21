@@ -18,22 +18,80 @@ def _dict2img(x):
 
 def main():
     # Read
-    data = []
+    data = {}
     with open('t.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
-            if ln == '': # Nov blok podatkov
-                pass
-            da = ln.split(',')
-            data += [da]
+            da = ln.split(': ')
+            if len(da[1]) == 11:
+                d = (da[1][:4], da[1][5], da[1][7:])
+            else:
+                d = int(da[1])
+            data.update({da[0]: d})
+
+    def racun(monk, dat):
+        arg = dat[monk]
+        if isinstance(arg, int):
+            return arg
+        elif isinstance(arg, tuple) and len(arg) == 3:
+            a = racun(arg[0], dat)
+            b = racun(arg[2], dat)
+            return int(eval(f"{a}{arg[1]}{b}"))
+
+    def subdat(monk, d = {}):
+        arg = dat[monk]
+        d = {monk: arg}
+        if isinstance(arg, tuple) and len(arg) == 3:
+            d.update(subdat(arg[0]) | subdat(arg[2]))
+        return d
+            
+    def nazaj(cilj, monk, dat):
+        if monk == 'humn':
+            return cilj
+        arg = dat[monk]
+        if isinstance(arg, tuple) and len(arg) == 3:
+            dat1 = subdat(arg[0])
+            dat2 = subdat(arg[2])
+            if 'humn' in dat1:
+                dat_h = dat1
+                humn = e1
+                monk = e2
+            elif 'humn' in dat2:
+                dat_h = dat2
+                humn = e2
+                monk = e1
+            else:
+                raise AssertionError()
+            cifra = racun(monk, dat)
+            res = nazaj(cifra, humn, dat_h)
+        else:
+            res = arg
+        print()
+        
 
     # Part 1
     if True:
         dat=copy.deepcopy(data)
-        print(f"A1: {0}")
+        p1 = racun('root', dat)
+        print(f"A1: {p1}")
 
     # Part 2
-    dat=copy.deepcopy(data)
+    e1 = dat['root'][0]
+    e2 = dat['root'][2]
+    dat1 = subdat(e1)
+    dat2 = subdat(e2)
+    if 'humn' in dat1:
+        dat_h = dat1
+        humn = e1
+        monk = e2
+    elif 'humn' in dat2:
+        dat_h = dat2
+        humn = e2
+        monk = e1
+    else:
+        raise AssertionError()
+    cifra = racun(monk, dat)
+    p2 = nazaj(cifra, humn, dat_h)
     print(f"A2: {0}")
 
 if __name__ == '__main__':
