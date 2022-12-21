@@ -19,7 +19,7 @@ def _dict2img(x):
 def main():
     # Read
     data = {}
-    with open('t.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             da = ln.split(': ')
@@ -47,25 +47,42 @@ def main():
             
     def nazaj(cilj, monk):
         if monk == 'humn':
-            return cilj
+            return int(cilj)
         arg = dat[monk]
         if isinstance(arg, tuple) and len(arg) == 3:
             dat1 = subdat(arg[0])
             dat2 = subdat(arg[2])
-            if 'humn' in dat1:
-                dat_h = dat1
-                humn = e1
-                monk = e2
-            elif 'humn' in dat2:
-                dat_h = dat2
-                humn = e2
-                monk = e1
+            if 'humn' in dat1:  # 'humn'' is in dat1
+                desna = racun(arg[2], dat)
+                if arg[1] in {'/'}:
+                    _cilj = cilj * desna
+                elif arg[1] in {'*'}:
+                    _cilj = cilj / desna
+                elif arg[1] in {'-'}:
+                    _cilj = cilj + desna
+                elif arg[1] in {'+'}:
+                    _cilj = cilj - desna
+                else:
+                    print('NotImplemented')
+                return int(nazaj(_cilj, arg[0]))
+            elif 'humn' in dat2: # 'humn' is in dat2
+                leva = racun(arg[0], dat)
+                if arg[1] in {'+'}:
+                    _cilj = cilj - leva
+                elif arg[1] in {'*'}:
+                    _cilj = cilj / leva
+                elif arg[1] in {'-'}:
+                    _cilj = leva - cilj
+                elif arg[1] in {'/'}:
+                    _cilj = leva / cilj
+                else:
+                    print('NotImplemented')
+                return int(nazaj(_cilj, arg[2]))
             else:
                 raise AssertionError()
-            cifra = racun(monk, dat)
-            res = nazaj(cifra, humn)
+            leva, desna
         else:
-            return arg
+            return int(arg)
         
 
     # Part 1
@@ -91,7 +108,7 @@ def main():
         raise AssertionError()
     cifra = racun(monk, dat)
     p2 = nazaj(cifra, humn)
-    print(f"A2: {0}")
+    print(f"A2: {p2}")
 
 if __name__ == '__main__':
     main()
