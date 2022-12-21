@@ -45,7 +45,7 @@ def main():
             d.update(subdat(arg[0]) | subdat(arg[2]))
         return d
             
-    def nazaj(cilj, monk, dat):
+    def nazaj(cilj, monk):
         if monk == 'humn':
             return cilj
         arg = dat[monk]
@@ -63,10 +63,9 @@ def main():
             else:
                 raise AssertionError()
             cifra = racun(monk, dat)
-            res = nazaj(cifra, humn, dat_h)
+            res = nazaj(cifra, humn)
         else:
-            res = arg
-        print()
+            return arg
         
 
     # Part 1
@@ -91,7 +90,7 @@ def main():
     else:
         raise AssertionError()
     cifra = racun(monk, dat)
-    p2 = nazaj(cifra, humn, dat_h)
+    p2 = nazaj(cifra, humn)
     print(f"A2: {0}")
 
 if __name__ == '__main__':
