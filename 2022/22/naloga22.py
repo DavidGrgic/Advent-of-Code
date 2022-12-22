@@ -22,7 +22,7 @@ def main():
     data = []
     ins = []
     k = -1
-    with open('d.txt', 'r') as file:
+    with open('t.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             if ln == '': # Nov blok podatkov
@@ -56,7 +56,7 @@ def main():
     xM = max(i[0] for i in data) +1
     yM = max(i[1] for i in data) +1
     # Part 1
-    if True:
+    if False:
         dat = np.zeros((xM, yM)).astype(int)
         for i in data:
             if i[2] == 0:
@@ -137,6 +137,11 @@ def main():
             continue
         dat[ploskev(i[:2])][i[0] % size, i[1] % size] = i[2]
 
+
+    def plus_plo(x, y):
+        z = plus(x, y)
+        return (z[0] % (xM // size), z[1] % (yM // size))
+
     pos = (0, min(k for k, i in enumerate(data) if i[0] == 0 and i[2] == 1))
     pos = tuple(i % size for i in pos) + ploskev(pos)
     smer = 'E'
@@ -145,11 +150,22 @@ def main():
             for _ in range(i):
                 p = plus(pos[:2], mov[smer]) + pos[2:]
                 if not ((0 <= p[0] < size) and (0 <= p[1] < size)):
-                    plos = plus(p[2:], mov[smer])
+                    plos = plus_plo(p[2:], mov[smer])
+#                    plos = (plos[0] % (xM // size), plos[1] % (yM // size))   # Zvit papir na kocko ima omejeno stevilo ploskev
                     if plos in dat:
                         p = tuple(j % size for j in p[:2]) + plos
                     else:
-                        pass
+                        if smer == 'E':
+                            right = plus_plo(plos, mov[trn[(smer, 'R')]])
+                            left = plus_plo(plos, mov[trn[(smer, 'L')]])
+                        elif smer == 'S':
+                            pass
+                        elif smer == 'W':
+                            pass
+                        elif smer == 'N':
+                            pass
+                        else:
+                            raise Exception
                 if dat[p[2:]][p[:2]] == 1:
                     pos = p
                 elif dat[p[2:]][p[:2]] == 2:
