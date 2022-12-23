@@ -9,7 +9,7 @@ import pandas as pd, numpy as np
 #from itertools import permutations, combinations, product
 #import networkx as nx   # G = nx.DiGraph(); G.add_edges_from([('Start', 'B'), ('B', 'C'), ('Start', 'C'), ('C', 'End')]); nx.shortest_path(G, 'Start', 'End')
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
-_img_map = {0: ' ', 1: '#'}; _img_print = lambda x: print('\n'+'\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]));
+_img_map = {0: ' ', 1: '.', 2: '#', 3: 'x'}; _img_print = lambda x: print('\n'+'\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]));
 def _dict2img(x):
     offset = tuple(int(min(i[j] for i in x.keys())) for j in range(2))
     img = np.zeros(tuple(int(max(i[j] for i in x.keys())-offset[j])+1 for j in range(2))).astype(int)
@@ -127,7 +127,12 @@ def main():
 
 
 
-
+    def plot3d(pos):
+        img = np.zeros((xM, yM)).astype(int)
+        for plo, frm in dat.items():
+            img[plo[0]*size:(plo[0]+1)*size, plo[1]*size:(plo[1]+1)*size] = frm
+        img[(pos[2]*size + pos[0]) % xM, (pos[3]*size + pos[1]) % yM] = 3
+        _img_print(img)
 
     ploskev = lambda pos: (pos[0] // size, pos[1] // size)
     ploskev_over = lambda :0
@@ -137,10 +142,23 @@ def main():
             continue
         dat[ploskev(i[:2])][i[0] % size, i[1] % size] = i[2]
 
-
     def plus_plo(x, y):
         z = plus(x, y)
         return (z[0] % (xM // size), z[1] % (yM // size))
+
+    # https://www.reddit.com/r/adventofcode/comments/zsct8w/comment/j17s6l5/?utm_source=share&utm_medium=web2x&context=3
+    # https://www.reddit.com/user/Financial-Umpire-112/
+    inner_corner = set()
+    for x in range(max(i[0] for i in dat)):
+        for y in range(max(i[1] for i in dat)):
+            vogal = tuple((x+i, y+j) for i in range(2) for j in range(2) if (x+i, y+j) in dat)
+            if len(vogal) == 3:
+                inner_corner |= {vogal}
+    for ic in inner_corner:
+        pass
+    glue = {((0,2, 'W'), (1,1, 'N')): True}
+    
+    glue |= {v:k for k, v in glue.items()}
 
     pos = (0, min(k for k, i in enumerate(data) if i[0] == 0 and i[2] == 1))
     pos = tuple(i % size for i in pos) + ploskev(pos)
@@ -149,21 +167,28 @@ def main():
         if isinstance(i, int):
             for _ in range(i):
                 p = plus(pos[:2], mov[smer]) + pos[2:]
+                plot3d(p)
                 if not ((0 <= p[0] < size) and (0 <= p[1] < size)):
                     plos = plus_plo(p[2:], mov[smer])
 #                    plos = (plos[0] % (xM // size), plos[1] % (yM // size))   # Zvit papir na kocko ima omejeno stevilo ploskev
                     if plos in dat:
-                        p = tuple(j % size for j in p[:2]) + plos
+                        if (xM > yM and smer in {'S', 'N'}) or (xM < yM and smer in {'E', 'W'}):
+                            p = tuple(j % size for j in p[:2]) + plos
+                        else:
+                            nxt_plos
+                            p = ((size-p[0]) % size, (size-p[1]) % size)
+                            smer = {'E': 'W', 'S': 'N', 'W': 'E', 'N': 'S'}[smer]
                     else:
-                        if smer == 'E':
-                            right = plus_plo(plos, mov[trn[(smer, 'R')]])
-                            left = plus_plo(plos, mov[trn[(smer, 'L')]])
-                        elif smer == 'S':
-                            pass
-                        elif smer == 'W':
-                            pass
-                        elif smer == 'N':
-                            pass
+                        now_right = plus_plo(p[2:], mov[trn[(smer, 'R')]])
+                        nxt_right = plus_plo(plos, mov[trn[(smer, 'R')]])
+                        now_left = plus_plo(p[2:], mov[trn[(smer, 'R')]])
+                        nxt_left = plus_plo(plos, mov[trn[(smer, 'L')]])
+                        if now_right in dat and nxt_right in dat:
+                            p = (p[1] % size, size - 1 - p[0]) + nxt_right
+                            smer = trn[(smer, 'R')]
+                        elif now_left in dat and nxt_left in dat:
+                            p = (size - (p[1] % size), p[0])
+                            smer = trn[(smer, 'L')]
                         else:
                             raise Exception
                 if dat[p[2:]][p[:2]] == 1:
