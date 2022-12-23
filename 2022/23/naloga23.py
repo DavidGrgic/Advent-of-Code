@@ -21,7 +21,7 @@ def main():
     # Read
     data = {}
     k = -1
-    with open('t1.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             for i, v in enumerate(ln):
@@ -34,25 +34,39 @@ def main():
     prev = {'N': {'N', 'NW', 'NE'}, 'W': {'W', 'NW', 'SW'}, 'S': {'S', 'SW', 'SE'}, 'E': {'E', 'SE', 'NE'}}
     plus = lambda x, y: (x[0]+y[0],x[1]+y[1])
     chk = lambda da, x, d: not any(plus(x, smer[j]) in da.values() for j in prev[d])
-    # Part 1
-    if True:
-        dat=copy.deepcopy(data)
-        for k in range(10):
-            _o = order[(k % len(order)):] + order[:(k % len(order))]
-            _dat = copy.deepcopy(dat)
-            for e, p in dat.items():
+    
+    def runda(dat, k):
+        _o = order[(k % len(order)):] + order[:(k % len(order))]
+        _dat = copy.deepcopy(dat)
+        for e, p in dat.items():
+            if any(plus(p, v) in dat.values() for j, v in smer.items()):
                 for i in _o:
                     if chk(dat, p, i):
                         _dat[e] = plus(p, smer[i])
                         break
-            uni = {k for k, v in Counter(_dat.values()).items() if v == 1}
-            dat = {k: v if v in uni else dat[k] for k, v in _dat.items()}
-            print(k+1);  img(dat)
+        uni = {k for k, v in Counter(_dat.values()).items() if v == 1}
+        return {k: v if v in uni else dat[k] for k, v in _dat.items()}
+        
+    
+    # Part 1
+    if True:
+        dat=copy.deepcopy(data)
+        for k in range(10):
+            dat = runda(dat, k)
+            #print(k+1); img(dat)
         print(f"A1: {(_dict2img({i: 1 for i in dat.values()}) == 0).sum()}")
 
     # Part 2
     dat=copy.deepcopy(data)
-    print(f"A2: {0}")
+    k = 0
+    while True:
+        dat_ = copy.deepcopy(dat)
+        dat = runda(dat, k)
+        k += 1
+        if dat_ == dat:
+            break
+        #if k % 25 == 0: print(k, len(set(dat.values()) - set(dat_.values())))
+    print(f"A2: {k}")
 
 if __name__ == '__main__':
     main()

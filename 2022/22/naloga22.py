@@ -16,13 +16,13 @@ def _dict2img(x):
     img[tuple(tuple(int(i[j]-offset[j]) for i in x.keys()) for j in range(2))] = list(x.values())
     return img
 
-def main():
+def main(prod = True):
     # Read
     split = False
     data = []
     ins = []
     k = -1
-    with open('t.txt', 'r') as file:
+    with open('d.txt' if prod else 't.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             if ln == '': # Nov blok podatkov
@@ -56,7 +56,7 @@ def main():
     xM = max(i[0] for i in data) +1
     yM = max(i[1] for i in data) +1
     # Part 1
-    if False:
+    if True:
         dat = np.zeros((xM, yM)).astype(int)
         for i in data:
             if i[2] == 0:
@@ -98,67 +98,29 @@ def main():
     # Part 2
     size = abs(yM-xM)
     assert size != 0 and yM % size == 0 and xM % size == 0
-    
-    
-    
-    # osi = {(0,0): (       ), (0,1): (None, 1, 0), (0,2): (       ), (0,3): (       ),
-    #        (1,0): (       ), (1,1): (0, 1, None), (1,2): (       ), (0,3): (       ),
-    #        (2,0): (       ), (2,1): (None, 1, 0), (2,2): (       ), (2,3): (       ),
-    #        (3,0): (       ), (3,1): (       ), (3,2): (       ), (3,3): (       )}
-
-    
-    # # kvad: prvi dve stevilki povesta po kateri dimenziji (pazi, 1 pomeni dimenzijo x, torej 0, 2 dimenijo y, torej 1, in 3 dimentzijo z, torej 2) tečejo vrstice in stolpci,
-    # #       predznak pa v katero smer. tretji bool pa pove če je po preostali dimenziji to prednja (False) ali pa zadnja (True) stranica
-    # ploskve = {(0,0): (1, 2, False), (0,1): (1, 3, True), (0,2): (1, -2, True), (0,3): (1, -3, False),
-    #         (1,0): (3, 2, True), (1,1): (3, -1, True), (1,2): (3, -2, False), (0,3): (3, 1, False),
-    #         (2,0): (-1, 2, True), (2,1): (-1, -3, True), (2,2): (-1, -2, False), (2,3): (-1, 3, False),
-    #         (3,0): (-3, 2, False), (3,1): (-3, 1, True), (3,2): (-3, -2, True), (3,3): (-3, -1, False)}
-
-    # ploskve = {(0,1), (1,0), (1,1), (1,2), (1,3), (2,1)}
-    # # prvi dve številki id ekvivalentne ploskve, tretja številka kolikorat jo moramo zasukati levo (za 90° v pozitivni smeri) da pridemo do ekvivalentne ploskve
-    # ploskve_map = {(0,0): (       ), (0,1): (1, 1, 0), (0,2): (       ), (0,3): (       ),
-    #                (1,0): (1, 0, 0), (1,1): (1, 1, 0), (1,2): (1, 2, 0), (1,3): (1, 3, 0),
-    #                (2,0): (       ), (2,1): (2, 1, 0), (2,2): (       ), (2,3): (       ),
-    #                (3,0): (       ), (3,1): (       ), (3,2): (       ), (3,3): (       )}
-
-    # def flat_3d(pos):
-    #     plos = ploskev(pos)
-    #     x = ploskve[plos]
-
-
 
     def plot3d(pos):
-        img = np.zeros((xM, yM)).astype(int)
+        img = np.zeros((xM+2, yM+2)).astype(int)
         for plo, frm in dat.items():
-            img[plo[0]*size:(plo[0]+1)*size, plo[1]*size:(plo[1]+1)*size] = frm
-        img[(pos[2]*size + pos[0]) % xM, (pos[3]*size + pos[1]) % yM] = 3
+            img[1+plo[0]*size:1+(plo[0]+1)*size, 1+plo[1]*size:1+(plo[1]+1)*size] = frm
+        img[1+pos[2]*size + pos[0], 1+pos[3]*size + pos[1]] = 3
         _img_print(img)
 
     ploskev = lambda pos: (pos[0] // size, pos[1] // size)
-    ploskev_over = lambda :0
     dat = {ploskev(i[:2]): np.zeros((size, size)).astype(int) for i in data if i[2] != 0}  # Dovoljeni ploskve, e.g. ploskve na zvitku
     for i in data:
         if i[2] == 0:
             continue
         dat[ploskev(i[:2])][i[0] % size, i[1] % size] = i[2]
 
-    def plus_plo(x, y):
-        z = plus(x, y)
-        return (z[0] % (xM // size), z[1] % (yM // size))
-
-    # https://www.reddit.com/r/adventofcode/comments/zsct8w/comment/j17s6l5/?utm_source=share&utm_medium=web2x&context=3
-    # https://www.reddit.com/user/Financial-Umpire-112/
-    inner_corner = set()
-    for x in range(max(i[0] for i in dat)):
-        for y in range(max(i[1] for i in dat)):
-            vogal = tuple((x+i, y+j) for i in range(2) for j in range(2) if (x+i, y+j) in dat)
-            if len(vogal) == 3:
-                inner_corner |= {vogal}
-    for ic in inner_corner:
-        pass
-    glue = {((0,2, 'W'), (1,1, 'N')): True}
-    
-    glue |= {v:k for k, v in glue.items()}
+    # glue values have new ploskev xy, new direction, bool True if x and y swap, sign when calculating x and sign when calculating y
+    #          A                                    B                                    C                                    D                                      E                                      F                                      G
+    glue_t = {(0,2, 'W'): (1,1, 'S', True, -1, 1), (1,2, 'E'): (2,3, 'S', True, 1, -1), (1,1, 'S'): (2,2, 'E', True, -1, 1), (1,0, 'S'): (2,2, 'N', False, -1, -1), (0,2, 'E'): (2,3, 'W', False, -1, -1), (0,2, 'N'): (1,0, 'S', False, -1, -1), (1,0, 'W'): (2,3, 'N', True, -1, -1)}
+    glue_p = {(1,1, 'W'): (2,0, 'S', True, -1, 1), (2,1, 'S'): (3,0, 'W', True, 1, -1), (0,2, 'S'): (1,1, 'W', True, 1, -1), (0,1, 'W'): (2,0, 'E', False, -1, -1), (0,2, 'E'): (2,1, 'W', False, -1, -1), (0,1, 'N'): (3,0, 'E', True, 1, -1), (0,2, 'N'): (3,0, 'N', False, 1, 1)}
+    #          A                                    B                                    C                                    D                                      E                                      F                                    G
+    glue = glue_p if prod else glue_t
+    oposite = lambda x, D=list(mov): D[ (D.index(x) + 2) % 4]
+    glue |= {v[:2] + (oposite(v[2]),): k[:2] + (oposite(k[2]), v[3]) + v[4:][::-1] for k, v in glue.items()}
 
     pos = (0, min(k for k, i in enumerate(data) if i[0] == 0 and i[2] == 1))
     pos = tuple(i % size for i in pos) + ploskev(pos)
@@ -166,40 +128,31 @@ def main():
     for i in ins:
         if isinstance(i, int):
             for _ in range(i):
-                p = plus(pos[:2], mov[smer]) + pos[2:]
-                plot3d(p)
-                if not ((0 <= p[0] < size) and (0 <= p[1] < size)):
-                    plos = plus_plo(p[2:], mov[smer])
-#                    plos = (plos[0] % (xM // size), plos[1] % (yM // size))   # Zvit papir na kocko ima omejeno stevilo ploskev
+                _p = plus(pos[:2], mov[smer]) + pos[2:]
+                _s = smer
+                #plot3d(_p)
+                if not ((0 <= _p[0] < size) and (0 <= _p[1] < size)):  # Premaknemo se na drugo ploskev
+                    plos = plus(_p[2:], mov[smer])                    # Nova plos
                     if plos in dat:
-                        if (xM > yM and smer in {'S', 'N'}) or (xM < yM and smer in {'E', 'W'}):
-                            p = tuple(j % size for j in p[:2]) + plos
-                        else:
-                            nxt_plos
-                            p = ((size-p[0]) % size, (size-p[1]) % size)
-                            smer = {'E': 'W', 'S': 'N', 'W': 'E', 'N': 'S'}[smer]
+                        _p = tuple(j % size for j in _p[:2]) + plos
                     else:
-                        now_right = plus_plo(p[2:], mov[trn[(smer, 'R')]])
-                        nxt_right = plus_plo(plos, mov[trn[(smer, 'R')]])
-                        now_left = plus_plo(p[2:], mov[trn[(smer, 'R')]])
-                        nxt_left = plus_plo(plos, mov[trn[(smer, 'L')]])
-                        if now_right in dat and nxt_right in dat:
-                            p = (p[1] % size, size - 1 - p[0]) + nxt_right
-                            smer = trn[(smer, 'R')]
-                        elif now_left in dat and nxt_left in dat:
-                            p = (size - (p[1] % size), p[0])
-                            smer = trn[(smer, 'L')]
-                        else:
-                            raise Exception
-                if dat[p[2:]][p[:2]] == 1:
-                    pos = p
-                elif dat[p[2:]][p[:2]] == 2:
+                        trans = glue[_p[2:] + (smer,)]
+                        xy = tuple(i % size for i in _p[:2])[::-1 if trans[3] else 1]
+                        xy = tuple((j if s == 1 else size - 1 - j) % size for j, s in zip(xy, trans[-2:]))
+                        _p = xy + trans[:2]
+                        _s = trans[2]
+                if dat[_p[2:]][_p[:2]] == 1:
+                    pos = _p
+                    smer = _s
+                    #plot3d(pos)
+                elif dat[_p[2:]][_p[:2]] == 2:
                     break
                 else:
                     raise Exception
         else:
             smer = trn[(smer, i)]
-    print(f"A2: {1000 * (pos[0]+1) + 4 * (pos[1]+1) + {'E': 0, 'S':1, 'W':2, 'N':3}[smer]}")
+    po3d = pos[2]*size + pos[0], pos[3]*size + pos[1]
+    print(f"A2: {1000 * (po3d[0]+1) + 4 * (po3d[1]+1) + {'E': 0, 'S':1, 'W':2, 'N':3}[smer]}")
 
 if __name__ == '__main__':
-    main()
+    main(True)
