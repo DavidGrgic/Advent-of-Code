@@ -37,39 +37,34 @@ def main():
     move = lambda xyd: over(plus(xyd[:2], mov[xyd[2]]))
 
     vse = {(i,j) for i in range(shape[0]) for j in range(shape[1])}
-    ss = sum(shape)
-    nn = N * ss
-    tt = 3 * nn
+    tt = 3 * N * sum(shape)
     if True:
         poti = []
-        bli = copy.deepcopy(bliz)
+        bli = copy.deepcopy(bliz); pros = vse - {i[:2] for i in bli.values()}
         for t in range(tt):
             _bli = {k: move(v) + (v[2],) for k, v in bli.items()}
-            pros = vse - {i[:2] for i in bli.values()}
             _pros = vse - {i[:2] for i in _bli.values()}
             for toc in pros:
                 for k in {'', '<', '>', 'v', '^'}:
                     _toc = plus(toc, mov[k])
                     if _toc in _pros and 0 <= _toc[0] < shape[0] and 0 <= _toc[1] < shape[1]:
                         poti.append(((t,)+toc, (t+1,)+_toc))
-            bli = _bli
+            bli = _bli; pros = _pros
 
+    for k, v in {'v': (0,0), '^': (shape[0]-1,shape[1]-1)}.items():
+        tmp = {i[0] for i in poti if i[0][1:] == v}
+        starts = [(j, 's'+ k) for j in range(max(i[0] for i in tmp))]
+        poti += [(starts[i], starts[i+1]) for i in range(len(starts)-1)]
+        poti += [((i[0]-1, 's'+k), i) for i in tmp]
+        poti += [(i, 'e'+k) for i in tmp]
+    G = nx.DiGraph()
+    G.add_edges_from(poti)
     t = 0
-    for i, s_e in enumerate([((0,0), (shape[0]-1,shape[1]-1)), ((shape[0]-1,shape[1]-1), (0,0)), ((1,0), (shape[0]-1,shape[1]-1))]):
-        starts = list({(s_e[0], toc) for toc in {i[0] for i in poti if i[0][1:] == s_e[0]} if toc[0] >= t})
-        ends = sorted({(toc, (-toc[0],) + s_e[1]) for toc in {i[1] for i in poti if i[1][1:] == s_e[1]} if toc[0] >= t + ss})
-        G = nx.DiGraph()
-        G.add_edges_from(poti + starts + ends)
-        for en in ends:
-            try:
-                opt = nx.shortest_path(G, s_e[0], en[1])
-            except nx.exception.NetworkXNoPath:
-                #print(f"To early: {1-en[1][0]}")
-                continue
-            t = 1-opt[-1][0]
-            if i == 0:
-                print(f"A1: {t}")
-            break
+    for i, s_e in enumerate([('sv', 'e^'), ('s^', 'ev'), ('sv', 'e^')]):
+        opt = nx.shortest_path(G, (t, s_e[0]), s_e[1])
+        t = 1 + opt[-2][0]
+        if i == 0:
+            print(f"A1: {t}")
     print(f"A2: {t}")
 
 if __name__ == '__main__':
