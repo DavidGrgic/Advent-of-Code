@@ -14,12 +14,13 @@ import mat
 _img_map = {0: ' ', 1: '#'}; _img_print = lambda x: print('\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]))
 
 
-def fft(ii, dat, N):
-    _dat = []
+ssum = lambda x: sum(int(i) for i in x)
+
+def fft(ii, dat):
+    _dat = ''
     for i in range(*ii):
-        patt = [0] * (i+1) + [1] * (i+1) + [0] * (i+1) + [-1] * (i+1)
-        patt = (patt * (N // len(patt) + 1))[1:N+1]
-        _dat.append(abs(sum(v*p for v, p in zip(dat, patt))) % 10)
+        patt = [dat[j:j+i+1] for j in range(0, len(dat), i+1)]
+        _dat += str(abs(ssum(''.join(patt[1::4])) - ssum(''.join(patt[3::4]))) % 10)
     return _dat
 
 
@@ -47,12 +48,13 @@ def main():
         print(f"A1: {''.join(str(i) for i in dat[:8])}")
 
     # Part 2
-    dat = copy.deepcopy(data * 10000)
+    C = cpu_count()
+    dat = ''.join(str(i) for i in data) * 10000
     N = len(dat)
     for k in range(100):
-        II = (lambda C = cpu_count(), I = math.ceil(N/cpu_count()): [(c*I, min((c+1)*I, N)) for c in range(C)])()
-        dat = Parallel(-1 if sys.gettrace() is None else 1)(delayed(fft)(ii, dat, N) for ii in II)
-        dat = [j for i in dat for j in i]
+        II = (lambda I = math.ceil(N/C): [(c*I, min((c+1)*I, N)) for c in range(C)])()
+        dat = Parallel(-1 if sys.gettrace() is None else 1)(delayed(fft)(ii, 'x' + dat) for ii in II)
+        dat = ''.join(dat)
         print(k)
     pos = int(''.join(str(i) for i in data[:7]))
     p2 = dat[pos:pos+8]
