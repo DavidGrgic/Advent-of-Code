@@ -3,7 +3,7 @@
 @author: David Grgic
 """
 import pandas as pd, numpy as np
-import copy, math
+import copy, math, time
 from collections import Counter
 from fractions import Fraction
 from itertools import permutations, combinations, product
@@ -14,16 +14,6 @@ import mat
 _img_map = {0: ' ', 1: '#'}; _img_print = lambda x: print('\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]))
 
 
-ssum = lambda x: sum(int(i) for i in x)
-
-def fft(ii, dat):
-    _dat = ''
-    for i in range(*ii):
-        patt = [dat[j:j+i+1] for j in range(0, len(dat), i+1)]
-        _dat += str(abs(ssum(''.join(patt[1::4])) - ssum(''.join(patt[3::4]))) % 10)
-    return _dat
-
-
 def main():
     # Read
     with open('d.txt', 'r') as file:
@@ -31,14 +21,13 @@ def main():
             ln = ln.replace('\n', '')
             data = [int(i) for i in ln]
 
-    N = len(data)
-    pattern = []
-    for i in range(N):
-        patt = [0] * (i+1) + [1] * (i+1) + [0] * (i+1) + [-1] * (i+1)
-        pattern.append((patt * (N // len(patt) + 1))[1:N+1])
-
     # Part 1
     if True:
+        N = len(data)
+        pattern = []
+        for i in range(N):
+            patt = [0] * (i+1) + [1] * (i+1) + [0] * (i+1) + [-1] * (i+1)
+            pattern.append((patt * (N // len(patt) + 1))[1:N+1])
         dat = copy.deepcopy(data)
         for _ in range(100):
             _dat = []
@@ -48,18 +37,19 @@ def main():
         print(f"A1: {''.join(str(i) for i in dat[:8])}")
 
     # Part 2
-    C = cpu_count()
-    dat = ''.join(str(i) for i in data) * 10000
-    N = len(dat)
-    for k in range(100):
-        II = (lambda I = math.ceil(N/C): [(c*I, min((c+1)*I, N)) for c in range(C)])()
-        dat = Parallel(-1 if sys.gettrace() is None else 1)(delayed(fft)(ii, 'x' + dat) for ii in II)
-        dat = ''.join(dat)
-        print(k)
+    NN = 10000
     pos = int(''.join(str(i) for i in data[:7]))
-    p2 = dat[pos:pos+8]
-    print(f"A2: {''.join(str(i) for i in p2)}")
-
+    dat = (data[(pos % len(data))-len(data):] + (NN - 1 - pos // len(data)) * data)[::-1]
+    assert NN* len(data) > 2* len(dat), "Prdpostavimo, da je pattern 0,1,0,-1 vedno v obmocju 0,1"
+    for k in range(100):
+        _dat = []
+        tot = 0
+        for i in dat:
+            tot = (tot + i) % 10
+            _dat.append(tot) 
+        dat = _dat
+    dat = dat[::-1]
+    print(f"A2: {''.join(str(i) for i in dat[:8])}")
 
 if __name__ == '__main__':
     main()
