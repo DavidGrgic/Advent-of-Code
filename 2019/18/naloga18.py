@@ -19,7 +19,7 @@ def main():
 
     # Read
     data = {}
-    with open('t1.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             for i, l in enumerate(ln):
@@ -48,20 +48,23 @@ def main():
 
     def collect(start, keys, nodes):
         if len(keys) == 0:
-            return []
+            return [start]
         G = nx.Graph()
         G.add_edges_from(nodes)
+        res = []
         for k, v in keys.items():
             try:
-                pot = nx.shortest_path(G, start, v)
-            except nx.exception.NetworkXNoPath:
+                _pot = nx.shortest_path(G, start, v)
+            except (nx.exception.NetworkXNoPath, nx.exception.NodeNotFound):
                 continue
-            collect(v, keys - {k}, nodes | vrata[k.upper()])
+            pot = collect(v, {_k: v for _k, v in keys.items() if _k != k}, nodes | vrata.get(k.upper(), set()))
+            res.append(_pot + pot[1:])
+        return sorted(res, key = lambda x: len(x))[0]
 
     # Part 1
     if True:
-
-        print(f"A1: {0}")
+        pot = collect(zacetek, kljuci, povezave)
+        print(f"A1: {len(pot)-1}")
           
     
     # Part 2
