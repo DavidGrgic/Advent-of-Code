@@ -45,25 +45,38 @@ def main():
             else:
                 if not ('A' <= _v <= 'Z'):
                     povezave |= pove(k, _k)
+        
 
-    def collect(start, keys, nodes):
+    def collect(start, keys):
         if len(keys) == 0:
             return [start]
-        G = nx.Graph()
-        G.add_edges_from(nodes)
-        res = []
-        for k, v in keys.items():
+        elif (start, keys) in cache:
+            return cache[(start, keys)]
+        res = None
+        for k in keys:
             try:
-                _pot = nx.shortest_path(G, start, v)
+                _pot = nx.shortest_path(G, start, kljuci[k])
             except (nx.exception.NetworkXNoPath, nx.exception.NodeNotFound):
                 continue
-            pot = collect(v, {_k: v for _k, v in keys.items() if _k != k}, nodes | vrata.get(k.upper(), set()))
-            res.append(_pot + pot[1:])
-        return sorted(res, key = lambda x: len(x))[0]
+            if res is not None and len(res) <= len(_pot):
+                continue
+            nodes = vrata.get(k.upper(), set())
+            G.add_edges_from(nodes)
+            pot = collect(kljuci[k], tuple(_k for _k in keys if _k != k))
+            G.remove_edges_from(nodes)
+            _res = _pot + pot[1:]
+            if res is None or len(_res) < len(res):
+                res = _res
+        cache.update({(start, keys): res})
+        return res
 
     # Part 1
     if True:
-        pot = collect(zacetek, kljuci, povezave)
+        cache = {}
+        G = nx.Graph()
+        G.add_edges_from(povezave)
+        pot = collect(zacetek, tuple(kljuci.keys()))
+        print([next(iter(k for k, v in kljuci.items() if v == i)) for j, i in enumerate(pot) if i in kljuci.values() and i not in pot[:j]])
         print(f"A1: {len(pot)-1}")
           
     
