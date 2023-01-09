@@ -21,7 +21,7 @@ isportal = lambda x: len(x) == 2 and all('A' <= i <= 'Z' for i in x)
 
 def main():
     # Read
-    with open('t1.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         data = file.readlines()
     data = [i.replace('\n', '') for i in data]
 
@@ -37,11 +37,13 @@ def main():
     #_img_print(_dict2img({i:1 for k in povezave for i in k}))
     portal = []
     portal.extend([(''.join(v), (2, i)) for i, v in enumerate(zip(*tuple(data[:2]))) if isportal(''.join(v))])  # Zunaj zgoraj
-    portal.extend([(''.join(v), (len(data)-3, i)) for i, v in enumerate(zip(*tuple(data[len(data)-2:]))) if isportal(''.join(v))])  # Zunaj spodaj
+    portal.extend([(''.join(v), (len(data)-3, i)) for i, v in enumerate(zip(*tuple(data[-2:]))) if isportal(''.join(v))])  # Zunaj spodaj
     portal.extend([(v[:2], (i, 2)) for i, v in enumerate(data) if isportal(v[:2])])  # Zunaj levo
     portal.extend([(v[-2:], (i, len(data[2])-3)) for i, v in enumerate(data) if isportal(v[-2:])])  # Zunaj desno
     portal.extend([(''.join(v), (1+debelina, i)) for i, v in enumerate(zip(*tuple(data[2+debelina:4+debelina]))) if isportal(''.join(v))])  # Znotraj zgoraj
-
+    portal.extend([(''.join(v), (len(data)-2-debelina, i)) for i, v in enumerate(zip(*tuple(data[-4-debelina:-2-debelina]))) if isportal(''.join(v))])  # Znotraj spodaj
+    portal.extend([(v[2+debelina:4+debelina], (i, 1+debelina)) for i, v in enumerate(data) if isportal(v[2+debelina:4+debelina])])  # Znotraj levo
+    portal.extend([(v[-4-debelina:-2-debelina], (i, len(data[2])-2-debelina)) for i, v in enumerate(data) if isportal(v[-4-debelina:-2-debelina])])  # Znotraj desno
     portal = (lambda P = {i[0] for i in portal}: {k: tuple(sorted(i[1] for i in portal if i[0] == k)) for k in P})()
     assert (lambda P = {j for i in povezave for j in i}: all(i in P for v in portal.values() for i in v))()
     # Part 1
