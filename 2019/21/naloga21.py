@@ -97,17 +97,19 @@ def main():
 
     # Part 2
     inst = [
+        "NOT T T",
+        "AND E T",
+        "AND F T",
+        "AND G T",
+        "AND H T",      
+        "OR I T",
         "NOT J J",
         "AND A J",
         "AND B J",
         "AND C J",
-        "AND D J",
-        "AND E J",
-        "AND F J",
-        "AND G J",
-        "AND H J",
         "NOT J J",
-        "AND I J",
+        "AND D J",
+        "AND T J",
         "RUN"]
     inp = [ord(j) for i in inst for j in i+'\n']
     _dat, out, _pos, _bas, _con = intcode(copy.copy(data), inp)
