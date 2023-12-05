@@ -68,13 +68,12 @@ def main():
         for m in mm:
             m_ = m[1]
             _m = m[1] + m[2] - 1
-            d = m[0] - m[1]
-            if v_ < m_ and _v >= m_:
-                return [rng(v_, m_-1)] + slikaj(rng(m_, _v), step)
-            elif _v > _m and v_ <= _m:
-                return slikaj(rng(v_, _m), step) + [rng(_m+1, _v)]
-            elif v_ >= m_ and _v <= _m:
-                return [rng(v_, _v, d)]
+            if m_ <= v_ and _v <= _m:
+                return [rng(v_, _v, m[0] - m[1])]
+            elif v_ < m_ and m_ <= _v:
+                return slikaj(rng(v_, m_-1), step) + slikaj(rng(m_, _v), step)
+            elif _m < _v and v_ <= _m:
+                return slikaj(rng(v_, _m), step) + slikaj(rng(_m+1, _v), step)
         return [value]
 
     def isci(value, step = 0):
