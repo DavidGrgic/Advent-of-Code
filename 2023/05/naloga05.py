@@ -22,7 +22,7 @@ def main():
     seeds = []
     maps = {}
     text = False
-    with open('t.txt', 'r') as file:
+    with open('t1.txt', 'r') as file:
         step = -1
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
@@ -59,33 +59,38 @@ def main():
         print(f"A1: {min(p1)}")
 
     # Part 2
-    semena = [range(seeds[i], seeds[i] + seeds[i+1])for i in range(0, len(seeds), 2)]
+    rng = lambda m, M, dif = 0: range(m + dif, M + 1 + dif)
 
     def slikaj(value, step):
         mm = maps[step]
-        ret = []
+        v_ = min(value)
+        _v = max(value)
         for m in mm:
-            if min(value) < m[1]:
-                if max(value) >= m[1]:
-                    if max(value) <= m[1]+m[2]:
-                        return [range(min(value), m[1]), range(m[1], min(m[1]+m[2], max(value)))]
-                    else:
-                        pass
-            if m[1] <= value < (m[1] + m[2]):
-                return value - m[1] + m[0]
-        return value
+            m_ = m[1]
+            _m = m[1] + m[2] - 1
+            if m_ >= _m:
+                continue
+            d = m[0] - m[1]
+            if v_ < m_ and _v >= m_:
+                return [rng(v_, m_-1)] + slikaj(rng(m_, _v), step)
+            elif _v > _m and v_ <= _m:
+                return slikaj(rng(v_, _m), step) + [rng(_m+1, _v)]
+            elif v_ >= m_ and _v <= _m:
+                return [rng(v_, _m, d)]
+        return [value]
 
     def isci(value, step = 0):
         if step in maps:
             res = []
             for val in value:
-                slikaj(val, step)
+                res += slikaj(val, step)
             return isci(res, step + 1)
         else:
             return value
-    
+
+    semena = [range(seeds[i], seeds[i] + seeds[i+1])for i in range(0, len(seeds), 2)]
     p2 = isci(semena)
-    print(f"A2: {0}")
+    print(f"A2: {min([min(i) for i in p2])}")
 
 if __name__ == '__main__':
     main()
