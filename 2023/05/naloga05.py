@@ -59,7 +59,32 @@ def main():
         print(f"A1: {min(p1)}")
 
     # Part 2
+    semena = [range(seeds[i], seeds[i] + seeds[i+1])for i in range(0, len(seeds), 2)]
+
+    def slikaj(value, step):
+        mm = maps[step]
+        ret = []
+        for m in mm:
+            if min(value) < m[1]:
+                if max(value) >= m[1]:
+                    if max(value) <= m[1]+m[2]:
+                        return [range(min(value), m[1]), range(m[1], min(m[1]+m[2], max(value)))]
+                    else:
+                        pass
+            if m[1] <= value < (m[1] + m[2]):
+                return value - m[1] + m[0]
+        return value
+
+    def isci(value, step = 0):
+        if step in maps:
+            res = []
+            for val in value:
+                slikaj(val, step)
+            return isci(res, step + 1)
+        else:
+            return value
     
+    p2 = isci(semena)
     print(f"A2: {0}")
 
 if __name__ == '__main__':
