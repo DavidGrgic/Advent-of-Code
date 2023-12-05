@@ -22,7 +22,7 @@ def main():
     seeds = []
     maps = {}
     text = False
-    with open('t1.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         step = -1
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
@@ -45,13 +45,13 @@ def main():
                 if m[1] <= value < (m[1] + m[2]):
                     return value - m[1] + m[0]
             return value
-        
+
         def search(value, step = 0):
             if step in maps:
                 return search(preslikaj(value, step), step + 1)
             else:
                 return value
-       
+
         p1 = []
         for ss in seeds:
             res = search(ss)
@@ -76,7 +76,7 @@ def main():
             elif _v > _m and v_ <= _m:
                 return slikaj(rng(v_, _m), step) + [rng(_m+1, _v)]
             elif v_ >= m_ and _v <= _m:
-                return [rng(v_, _m, d)]
+                return [rng(v_, _v, d)]
         return [value]
 
     def isci(value, step = 0):
