@@ -68,8 +68,6 @@ def main():
         for m in mm:
             m_ = m[1]
             _m = m[1] + m[2] - 1
-            if m_ >= _m:
-                continue
             d = m[0] - m[1]
             if v_ < m_ and _v >= m_:
                 return [rng(v_, m_-1)] + slikaj(rng(m_, _v), step)
