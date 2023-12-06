@@ -26,7 +26,7 @@ def main():
             da = [int(i) for i in ln.split(': ')[-1].split()]
             data += [da]
 
-    def naloga(time, dist):
+    def naloga_(time, dist):
         pp = []
         for t, d in zip(time, dist):
             k = 1
@@ -42,14 +42,26 @@ def main():
                 k += 1
             pp.append(p)
         return pp
+    
+    def naloga(time, dist):
+        kvad = lambda t, d: tuple((t + i*math.sqrt(t**2 - 4* d))/2 for i in (1,-1))
+        eps = 1e-12
+        pp = []
+        for t, d in zip(time, dist):
+            x = kvad(t,d)
+            k = math.floor(x[0] - eps) - math.ceil(x[1] + eps) + 1
+            pp.append(max(k,0))
+        return pp
 
     # Part 1
     if True:
         p1 = naloga(data[0], data[1])
+        #p1 = naloga_(data[0], data[1])
         print(f"A1: {math.prod(p1)}")
 
     # Part 2
-    p2 = naloga([int(''.join(str(i) for i in data[0]))], [int(''.join(str(i) for i in data[1]))])
+    p2 = naloga(*tuple([int(''.join(str(i) for i in data[j]))] for j in range(2)))
+    #p2 = naloga_(*tuple([int(''.join(str(i) for i in data[j]))] for j in range(2)))
     print(f"A2: {math.prod(p2)}")
 
 if __name__ == '__main__':
