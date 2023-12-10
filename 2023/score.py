@@ -28,7 +28,7 @@ def main():
     score_id = score.groupby('ID')['Name'].first()
 
     # Day/Part statistic
-    minutes = score.loc[(score['Day'] == 1) & (score['Part'] == 2), ['Name', 'Day', 'LT', 'Minutes']].sort_values('Minutes')
+    minutes = score.loc[(score['Day'] == 1) & (score['Part'] == 1), ['Name', 'Day', 'LT', 'Minutes']].sort_values('Minutes')
 
     # Name place
     rank = (lambda N = 'David Grgic', S = score, D = pd.Index([i+1 for i in range(score['Day'].max())], name = 'Day', dtype = int), P = pd.Index([i for i in range(1,3)], name = 'Part', dtype = int), np = np: pd.DataFrame([[np.append(np.where(S.loc[(S['Day'] == d) & (S['Part'] == p)].sort_values('Minutes')['Name'].values == N)[0], -1)[0]+1 for p in P] for d in D], index = D, columns = P).astype(str).replace({'0':''}))()
