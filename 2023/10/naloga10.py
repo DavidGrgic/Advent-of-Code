@@ -95,22 +95,27 @@ def main():
                 if zem[tocka] == 0:
                     zem[tocka] = 2
         dvojk = (zem == 2).sum()
+        znotraj = True
         while True:
             ij = np.where(zem == 2)
             for i, j in zip(*ij):
                 for s in levo:
                     tocka = plus((i,j), s)
                     if not (0 <= tocka[0] < len(data) and 0 <= tocka[1] < len(data[0])):
-                        continue
+                        znotraj = False
+                        break
                     if zem[tocka] == 0:
                         zem[tocka] = 2
-            if (zem == 2).sum() == dvojk:
+                if not znotraj:
+                    break
+            if (zem == 2).sum() == dvojk or not znotraj:
                 break
             else:
                 dvojk = (zem == 2).sum()
-        zemljevid.append(zem)
+        if znotraj:
+            zemljevid.append(zem)
     p2 = [(i==2).sum() for i in zemljevid]
-    print(f"A2, sorted by thier probability: {' '.join(str(i) for i in sorted(p2))}")
+    print(f"A2: {' '.join(str(i) for i in sorted(p2))}")
 
 if __name__ == '__main__':
     main()
