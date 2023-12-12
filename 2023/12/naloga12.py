@@ -2,7 +2,7 @@
 """
 @author: David Grgic
 """
-import math, copy, os, sys
+import math, copy, os, sys, time
 import pandas as pd, numpy as np
 from collections import Counter
 #from fractions import Fraction
@@ -20,37 +20,37 @@ def _dict2img(x):
 def main():
     # Read
     data = []
-    with open('t.txt', 'r') as file:
+    with open('t1.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             da = ln.split(' ')
             data += [(da[0], tuple(int(i) for i in da[1].split(',')))]
 
-    stej = lambda x: sum(i == '#' for i in x)
-
-#    kash = {}
-    def komb(niz):
-#        niz = ''
-#        if niz in kash:
-#            return kash[niz]
-        poz = [i for i, v in enumerate(niz) if v == '?']
-        if len(poz) == 0:
-            comb = {niz}
+    kesh = {}
+    def generiraj(niz, num):
+        if (niz, num) in kesh:
+            return kesh[(niz, num)]
+        if len(num) == 0:
+            stej = int(niz.find('#') < 0)
         else:
-            try:
-                comb = [str(bin(i))[2:].replace('0','.').replace('1','#') for i in range(2**len(poz))]
-            except Exception as e:
-                print(niz)
-                raise e
-            ln = len(comb[-1])
-            comb = {(ln - len(i))*'.'+i for i in comb}
-            comb = {''.join(co[poz.index(i)] if i in poz else v for i, v in enumerate(niz)) for co in comb}
-        res = Counter([tuple(len(j) for j in i.replace('.', ' ').split()) for i in comb])
-#        kash[niz] = res
-        return res
+            pos = niz.find('?')
+            if pos < 0:
+                stej = int(tuple(len(i) for i in niz.replace('.', ' ').split()) == num)
+            else:
+                stej = 0
+                for zna in {'.', '#'}:
+                    kandidat = ''.join(zna if i == pos else v for i, v in enumerate(niz)).strip()
+                    test = kandidat.replace('.', ' ').split()
+                    if len(test) > 0 and set(test[0]) == {'#'}:
+                        if len(test[0]) == num[0]:
+                            stej += generiraj('.'.join(test[1:]), num[1:])
+                    else:
+                        stej += generiraj('.'.join(test), num)
+        kesh[(niz, num)] = stej
+        return stej
 
     # Part 1
-    if False:
+    if True:
         p1 = []
         for spr, num in data:
             ok = 0
@@ -75,17 +75,8 @@ def main():
         ok = 0
         spr = '?'.join(sprr for _ in range(nn))
         num = nn * numm
-        spr = spr.replace('.', ' ').split()
-        kombinacije = [komb(i) for i in spr]
-        bloki = [set(len(j) for j in i) for i in kombinacije]
-        bloki = [i for i in product(*tuple(bloki)) if sum(i) == len(num)] # veljavne kombinacije dolzin
-        for blok in bloki:
-            kandidati = [{i: v for i, v in k.items() if len(i) == d} for k, d in zip(kombinacije, blok)]
-            nnn = [kk for kk in product(*tuple(k for k in kandidati))]
-            #nnn = [kk for kk in product(*tuple(k for k in kandidati)) if sum(sum(i) for i in kk) == sum(num)]
-            ok += sum(math.prod(kandidati[i][n] for i, n in enumerate(nn)) for nn in nnn if tuple(j for i in nn for j in i) == num)
-        p2.append(ok)
-        print(p2)
+        p2.append(generiraj(spr, num))
+        #print(f"{len(p2)}/{len(data)}: {p2[-1]}")
     print(f"A2: {sum(p2)}")
 
 if __name__ == '__main__':
