@@ -50,6 +50,7 @@ def main():
     for sprr, numm in data:
         spr = '?'.join(sprr for _ in range(nn))
         num = nn * numm
+        spr = spr.replace('.', ' ').split()
     print(f"A2: {0}")
 
 if __name__ == '__main__':
