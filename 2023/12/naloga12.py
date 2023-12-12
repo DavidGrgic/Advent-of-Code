@@ -47,9 +47,9 @@ def main():
 
     # Part 2
     nn = 5
-    dat = []
-    for spr, num in data:
-        dat.append(('?'.join(spr for _ in range(nn)), nn*num))
+    for sprr, numm in data:
+        spr = '?'.join(sprr for _ in range(nn))
+        num = nn * numm
     print(f"A2: {0}")
 
 if __name__ == '__main__':
