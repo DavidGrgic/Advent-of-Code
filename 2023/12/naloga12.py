@@ -20,7 +20,7 @@ def _dict2img(x):
 def main():
     # Read
     data = []
-    with open('t1.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             da = ln.split(' ')
