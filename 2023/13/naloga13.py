@@ -32,16 +32,16 @@ def main():
     data.append(np.array(dat, dtype = int))
 
     def prelom(polje):
-        for i in range(1, polje.shape[0]):
-            if (polje[max(0, 2*i - polje.shape[0]):i] == polje[i:i+i][::-1,:]).all():
-                return i
 
-    def test(polje):
-        os = prelom(polje)
-        if os is None:
-            os = prelom(polje.T)
-        else:
-            os *= 100
+        def lom(polje):
+            res = set()
+            for i in range(1, polje.shape[0]):
+                if (polje[max(0, 2*i - polje.shape[0]):i] == polje[i:i+i][::-1,:]).all():
+                    res |= {i}
+            return res
+
+        os = {100 * i  for i in lom(polje)}
+        os |= lom(polje.T)
         return os
 
     # Part 1
@@ -49,29 +49,25 @@ def main():
         p1 = []
         for k, dat in enumerate(data):
             os = prelom(dat)
-            if os is None:
-                os = prelom(dat.T)
-            else:
-                os *= 100
-            p1.append(os)
+            p1.append(next(iter(os)))
         print(f"A1: {sum(p1)}")
 
     # Part 2
     p2 = []
     for k, dat in enumerate(data):
         ok = False
-        sol = test(dat)
+        sol = prelom(dat)
         for i in range(dat.shape[0]):
             for j in range(dat.shape[1]):
                 da = dat.copy()
                 da[i,j] = 0 if da[i,j] else 1
-                os = test(da)
-                if os != sol:
+                os = prelom(da).difference(sol)
+                if len(os) > 0:
                     ok = True
                     break
             if ok:
                 break
-        p2.append(os)
+        p2.append(next(iter(os)))
     print(f"A2: {sum(p2)}")
 
 if __name__ == '__main__':
