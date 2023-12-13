@@ -36,6 +36,14 @@ def main():
             if (polje[max(0, 2*i - polje.shape[0]):i] == polje[i:i+i][::-1,:]).all():
                 return i
 
+    def test(polje):
+        os = prelom(polje)
+        if os is None:
+            os = prelom(polje.T)
+        else:
+            os *= 100
+        return os
+
     # Part 1
     if True:
         p1 = []
@@ -52,19 +60,15 @@ def main():
     p2 = []
     for k, dat in enumerate(data):
         ok = False
+        sol = test(dat)
         for i in range(dat.shape[0]):
             for j in range(dat.shape[1]):
                 da = dat.copy()
                 da[i,j] = 0 if da[i,j] else 1
-                os = prelom(da)
-                if os is None or os == prelom(dat):
-                    os = prelom(da.T)
-                    if os is None or os == prelom(dat.T):
-                        continue
-                else:
-                    os *= 100
-                ok = True
-                break
+                os = test(da)
+                if os != sol:
+                    ok = True
+                    break
             if ok:
                 break
         p2.append(os)
