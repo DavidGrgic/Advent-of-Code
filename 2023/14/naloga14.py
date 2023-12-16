@@ -53,7 +53,6 @@ def main():
     assert size == max(i[1] for i in kvadratne | okrogle)
     nn = 1000000000
     okr = copy.deepcopy(okrogle)
-    cikel = [hash(tuple(sorted(okr)))]
     resitev = [okr]
     while True:
         for spin in [(0, -1), (1, -1), (0, 1), (1, 1)]:   # (axis, direction)
@@ -67,14 +66,12 @@ def main():
                         rr = max(i[spin[0]] for i in nad) + 1 if spin[1] == -1 else min(i[spin[0]] for i in nad) - 1
                     okr = okr.difference({k}) | {(rr, k[1]) if spin[0] == 0 else (k[0], rr)}
         #_img_print(_sets2img(okr, kvadratne))
-        has = hash(tuple(sorted(okr)))
-        if has in cikel:
+        if okr in resitev:
             break
         else:
-            cikel.append(has)
-            resitev.append(okr)
-    offset = cikel.index(has)
-    perioda = len(cikel) - offset
+            resitev.append(copy.deepcopy(okr))
+    offset = resitev.index(okr)
+    perioda = len(resitev) - offset
     zadnji = resitev[offset + ((nn - offset) % perioda)]
     p2 = [size - i[0] +1 for i in zadnji]
     print(f"A2: {sum(p2)}")
