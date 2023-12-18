@@ -29,30 +29,22 @@ def main():
     smer = {'R': (0,1), 'D': (1,0), 'L': (0,-1), 'U': (-1,0)}
     plus = lambda i, j, m=1: (i[0]+m*j[0], i[1]+m*j[1])
 
-    # Part 1
-    if True:
-        pot = [(0,0)]
-        for dat in data:
-            for _ in range(dat[1]):
-                pot.append(plus(pot[-1], smer[dat[0]]))
-        bazen, off = _dict2img({i:1 for i in pot})
-        bazen[plus((-off[0], -off[1]), (1,1))] = 2   # A je res to vedno prava tocka za poplavljat
+    def flood_out(field: np.array, what: set = {0}):
+        fill = k = field.max() + 1
+        field_ = np.full((field.shape[0]+2, field.shape[1]+2), fill)
+        field_[1:-1,1:-1] = field.copy()
         while True:
-            ll = (bazen != 0).sum()
-            k = np.where(bazen == 2)
-            for i, j in zip(*k):
-                for m in smer.values():
-                    if bazen[i+m[0], j+m[1]] == 0:
-                        bazen[i+m[0], j+m[1]] = 2
-            if ll == (bazen != 0).sum():
+            flood = np.where(field_ == k)
+            if flood[0].shape[0] == 0:
                 break
-        print(f"A1: {(bazen != 0).sum()}")
+            k += 1
+            for i, j in zip(*flood):
+                for s in smer.values():
+                    i_, j_ = plus((i, j), s)
+                    if 0 <= i_ < field_.shape[0] and 0 <= j_ < field_.shape[1] and field_[i_, j_] in what:
+                        field_[i_, j_] = k
+        return field_[1:-1,1:-1] < fill
 
-    # Part 2
-    data = [(int(i[-1][-1]), int('0x' + i[-1][1:-1].upper(), 16)) for i in data]
-    inv = {'R': 0, 'D': 1, 'L': 2, 'U': 3}
-    smer = {inv[k]: v for k, v in smer.items()}
-    
     def vmes(ij, ij_):
         res = [ij]
         if ij[0] == ij_[0]:
@@ -68,10 +60,24 @@ def main():
             res.append(tuple(x))
         return res
 
+    # Part 1
+    if True:
+        pot = [(0,0)]
+        for dat in data:
+            for _ in range(dat[1]):
+                pot.append(plus(pot[-1], smer[dat[0]]))
+        bazen, off = _dict2img({i:1 for i in pot})
+        bazen = flood_out(bazen)
+        print(f"A1: {bazen.sum()}")
+
+    # Part 2
+    data = [(int(i[-1][-1]), int('0x' + i[-1][1:-1].upper(), 16)) for i in data]
+    inv = {'R': 0, 'D': 1, 'L': 2, 'U': 3}
+    smer = {inv[k]: v for k, v in smer.items()}
+
     pot = [(0,0)]
     for i, dat in enumerate(data):
         pot.append(plus(pot[-1], smer[dat[0]], dat[1]))
-
     iii = sorted({i[0] for i in pot})
     jjj = sorted({i[1] for i in pot})
     vogal = {plus((2*i,2*j), s): plus((ii, jj), s) for i, ii in enumerate(iii) for j, jj in enumerate(jjj) for s in {(0,0), (0,1), (1,0), (1,1)}}
@@ -84,16 +90,7 @@ def main():
         tocke = vmes(pott[k], pott[k+1])
         for t in tocke:
             bazen[t] = 1
-    bazen[(i_i[1],j_j[1])] = 2  # A je res to vedno prava tocka za poplavljat
-    while True:
-        ll = (bazen != 0).sum()
-        k = np.where(bazen == 2)
-        for i, j in zip(*k):
-            for m in smer.values():
-                if bazen[i+m[0], j+m[1]] == 0:
-                    bazen[i+m[0], j+m[1]] = 2
-        if ll == (bazen != 0).sum():
-            break
+    bazen = flood_out(bazen)
     ploscina = 0
     for i in range(bazen.shape[0]-1):
         for j in range(bazen.shape[1]-1):
