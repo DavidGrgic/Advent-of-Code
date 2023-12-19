@@ -39,34 +39,66 @@ def main():
                 role.update({da[0]: da[1][:-1]})
 
     def test(obj, wf = 'in'):
+        
+        def go(nt):
+            if nt in {'A', ':A'}:
+                return True
+            elif nt in {'R', ':R'}:
+                return False
+            else:
+                return test(obj, nt)
+        
         rol = role[wf]
         while True:
             pos = rol.find(':')
-            if pos < 0:
-                break
             x = obj['x']; m = obj['m']; a = obj['a']; s = obj['s'];
             nxt = rol[pos+1:].split(',')
             if eval(rol[:pos]):
-                if nxt[0] in {'A', ':A'}:
-                    return True
-                elif nxt[0] in {'R', ':R'}:
-                    return False
-                else:
-                    return test(obj, nxt[0])
+                return go(nxt[0])
             else:
                 if len(nxt) == 2:
-                    if nxt[-1] == 'A':
-                        return True
-                    elif nxt[-1] == 'R':
-                        return False
-                    else:
-                        return test(obj, nxt[1])
+                    return go(nxt[-1])
                 else:
                     rol = ','.join(nxt[1:])
 
+    def test_rng(rng, wf = 'in'):
+        fis = lambda r: r if r[0] <= r[1] else None
+
+        if wf == 'A':
+            return [rng]
+        elif wf == 'R':
+            return []
+        rol = role[wf]
+        result = []
+        while True:
+            pos = rol.find(':')
+            if pos < 0:
+                result.extend(test_rng(rng, rol))
+                break
+            var = rol[0]
+            comp = rol[1]
+            split = int(rol[2:pos])
+            if comp == '<':
+                rTrue = (rng[var][0], split-1)
+                rFalse = (split, rng[var][1])
+            elif comp == '>':
+                rTrue = (split+1, rng[var][1])
+                rFalse = (rng[var][0], split)
+            else:
+                raise AssertionError()
+            rol = rol[pos+1:].split(',')
+            rTrue = fis(rTrue)
+            if rTrue is not None:
+                result.extend(test_rng(rng | {var: rTrue}, rol[0]))
+            rFalse = fis(rFalse)
+            if rFalse is None:
+                break
+            rng = rng | {var: rFalse}
+            rol = ','.join(rol[1:])
+        return result
+
     # Part 1
     if True:
-        x = test(data[4])
         p1 = {}
         for i, dat in enumerate(data):
             if test(dat):
@@ -75,8 +107,9 @@ def main():
         print(f"A1: {sum(p1.values())}")
 
     # Part 2
-    dat=copy.deepcopy(data)
-    print(f"A2: {0}")
+    dat = {i: (1, 4000) for i in {'x', 'm', 'a', 's'}}
+    p2 = test_rng(dat)
+    print(f"A2: {sum(math.prod(j[-1] - j[0] + 1 for j in i.values()) for i in p2)}")
 
 if __name__ == '__main__':
     main()
