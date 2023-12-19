@@ -82,8 +82,6 @@ def main():
     jjj = sorted({i[1] for i in pot})
     vogal = {plus((2*i,2*j), s): plus((ii, jj), s) for i, ii in enumerate(iii) for j, jj in enumerate(jjj) for s in {(0,0), (0,1), (1,0), (1,1)}}
     vogal_inv = {v: k for k, v in vogal.items()}
-    i_i = {k[0]: v[0] for k, v in vogal_inv.items()}
-    j_j = {k[1]: v[1] for k, v in vogal_inv.items()}
     bazen = np.zeros((2*len(iii), 2*len(jjj)), dtype = int)
     pott = [vogal_inv[p] for p in pot]
     for k in range(len(pott) - 1):

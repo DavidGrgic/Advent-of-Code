@@ -19,19 +19,59 @@ def _dict2img(x):
 
 def main():
     # Read
+    role = {}
     data = []
+    dat = False
     with open('t.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             if ln == '': # Nov blok podatkov
-                pass
-            da = ln.split(',')
-            data += [da]
+                dat = True
+                continue
+            if dat:
+                da = {}
+                for v in ln[1:-1].split(','):
+                    d = v.split('=')
+                    da.update({d[0]: int(d[1])})
+                data += [da]
+            else:
+                da = ln.split('{')
+                role.update({da[0]: da[1][:-1]})
+
+    def test(obj, wf = 'in'):
+        rol = role[wf]
+        pos = rol.find(':')
+        while pos >= 0:
+            x = obj['x']; m = obj['m']; a = obj['a']; s = obj['s'];
+            nxt = rol[pos+1:].split(',')
+            if eval(rol[:pos]):
+                if nxt[0] in {'A', ':A'}:
+                    return True
+                elif nxt[0] in {'R', ':R'}:
+                    return False
+                else:
+                    return test(obj, nxt[0])
+            else:
+                if len(nxt) == 2:
+                    print(nxt[1])
+                    if nxt[-1] == 'A':
+                        return True
+                    elif nxt[-1] == 'R':
+                        return False
+                    else:
+                        return test(obj, nxt[1])
+                else:
+                    rol = ','.join(nxt[1:])
 
     # Part 1
     if True:
-        dat=copy.deepcopy(data)
-        print(f"A1: {0}")
+        x = test(data[4])
+        p1 = {}
+        for i, dat in enumerate(data):
+            if test(dat):
+                su = sum(dat.values())
+                p1.update({i: su})            
+        print(f"A1: {sum(p1.values())}")
 
     # Part 2
     dat=copy.deepcopy(data)
