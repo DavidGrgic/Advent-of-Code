@@ -22,7 +22,7 @@ def main():
     role = {}
     data = []
     dat = False
-    with open('t.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             if ln == '': # Nov blok podatkov
@@ -40,8 +40,10 @@ def main():
 
     def test(obj, wf = 'in'):
         rol = role[wf]
-        pos = rol.find(':')
-        while pos >= 0:
+        while True:
+            pos = rol.find(':')
+            if pos < 0:
+                break
             x = obj['x']; m = obj['m']; a = obj['a']; s = obj['s'];
             nxt = rol[pos+1:].split(',')
             if eval(rol[:pos]):
@@ -53,7 +55,6 @@ def main():
                     return test(obj, nxt[0])
             else:
                 if len(nxt) == 2:
-                    print(nxt[1])
                     if nxt[-1] == 'A':
                         return True
                     elif nxt[-1] == 'R':
