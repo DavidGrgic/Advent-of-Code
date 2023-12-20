@@ -33,66 +33,47 @@ def main():
             data.update({idx: [i for i in da[1].split(', ')]})
 
 
-    def sprejem(signals):
-        for (source, destination), signal in signals.items():
-            stevec[signal] += 1
-            hist.append((source, signal, destination))
-            if typ.get(destination) == '%':
-                if not signal:
-                    stanje[destination] = not stanje[destination]
-            elif typ.get(destination) == '&':
-                stanje[destination][source] = signal
+    def obdelaj(signals):
 
-    def oddaja(signals):
-        
         def send(sig):
             for mod in submodul:
-                nxt.update({(destination, mod): sig})
+                stevec[sig] += 1
+                hist.append((destination, sig, mod))
+                queue.append((destination, mod, sig))
 
-        nxt = {}
-        for(source, destination), signal in signals.items():
+        queue = []
+        for(source, destination, signal) in signals:
             if destination not in data:
                 continue
             submodul = data[destination]
             if typ.get(destination) == '%':
                 if not signal:
+                    stanje[destination] = not stanje[destination]
                     send(stanje[destination])
             elif typ.get(destination) == '&':
+                stanje[destination][source] = signal
                 if all(stanje[destination].values()):
                     send(False)
                 else:
                     send(True)
             elif destination == 'broadcaster':
                 send(signal)
-        return nxt
+        return queue
 
     # Part 1
     if True:
-        conj_in = {k: {kk for kk, vv in data.items() if k in vv} for k, v in typ.items() if v == '&'}
         stanje =  {k: {kk: False for kk, vv in data.items() if k in vv} for k, v in typ.items() if v == '&'} | {k: False for k, v in typ.items() if v == '%'}
         stevec = {False: 0, True: 0}
         for _ in range(1000):
-   #         vhod_ = copy.deepcopy(vhod)
-            hist = []  
-   #         stevec[False] += 1  # Button
-            todo = {('button', 'broadcaster'): False}
+            hist = []
+            todo = [('button', 'broadcaster', False)]
+            stevec[False] += 1
             while len(todo) > 0:
-                sprejem(todo)
-                todo = oddaja(todo)
-
+                todo = obdelaj(todo)
         print(f"A1: {math.prod(stevec.values())}")
 
-# tt:
-# 747761786
-# 771937371 too low
-# 709473499
-# 1668452499 too high
-
-# d
-# 642639957 too low
     # Part 2
-    #            proces('broadcaster', vhod)
-    dat=copy.deepcopy(data)
+    stanje =  {k: {kk: False for kk, vv in data.items() if k in vv} for k, v in typ.items() if v == '&'} | {k: False for k, v in typ.items() if v == '%'}
     print(f"A2: {0}")
 
 if __name__ == '__main__':
