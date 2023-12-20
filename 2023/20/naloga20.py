@@ -38,7 +38,6 @@ def main():
         def send(sig):
             for mod in submodul:
                 stevec[sig] += 1
-                hist.append((destination, sig, mod))
                 queue.append((destination, mod, sig))
 
         queue = []
@@ -65,7 +64,6 @@ def main():
         stanje =  {k: {kk: False for kk, vv in data.items() if k in vv} for k, v in typ.items() if v == '&'} | {k: False for k, v in typ.items() if v == '%'}
         stevec = {False: 0, True: 0}
         for _ in range(1000):
-            hist = []
             todo = [('button', 'broadcaster', False)]
             stevec[False] += 1
             while len(todo) > 0:
@@ -73,8 +71,25 @@ def main():
         print(f"A1: {math.prod(stevec.values())}")
 
     # Part 2
+    to_rx = {k: typ[k] for k, v in data.items() if 'rx' in v}
+    assert len(to_rx) == 1 and '&' in to_rx.values(), "Assume only one conjunction module suplies signals to rx"
+    conj = {k: None for k, v in typ.items() if v == '&' and k not in to_rx}
     stanje =  {k: {kk: False for kk, vv in data.items() if k in vv} for k, v in typ.items() if v == '&'} | {k: False for k, v in typ.items() if v == '%'}
-    print(f"A2: {0}")
+    stevec = {False: 0, True: 0}
+    p2 = 0; ok = False
+    while True:
+        p2 += 1
+        todo = [('button', 'broadcaster', False)]
+        stevec[False] += 1
+        while len(todo) > 0:
+            todo = obdelaj(todo)
+            conj.update({k: p2 for k, v in conj.items() if v is None and all(stanje[k].values())})
+            if None not in conj.values():
+                ok = True
+                break
+        if ok:
+            break
+    print(f"A2: {math.lcm(*tuple(conj.values()))}")
 
 if __name__ == '__main__':
     main()
