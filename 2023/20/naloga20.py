@@ -21,7 +21,7 @@ def main():
     # Read
     data = {}
     typ = {}
-    with open('t.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             da = ln.split(' -> ')
@@ -32,62 +32,66 @@ def main():
                 idx = da[0]
             data.update({idx: [i for i in da[1].split(', ')]})
 
-    def pulz(modul, signal):
+
+    def sprejem(signals):
+        for (source, destination), signal in signals.items():
+            stevec[signal] += 1
+            hist.append((source, signal, destination))
+            if typ.get(destination) == '%':
+                if not signal:
+                    stanje[destination] = not stanje[destination]
+            elif typ.get(destination) == '&':
+                stanje[destination][source] = signal
+
+    def oddaja(signals):
         
-        def send(mod, sig):
-            ppp[sig] += 1
-            if typ[mod] == '%':
-                vhod[mod] = sig
-            elif typ[mod] == '&':
-                vhod[mod][modul] = sig
-            else:
-                raise AssertionError()
-        
-        submodul = data[modul]
-        if typ.get(modul) == '%':
-            if not signal:
-                stanje[modul] = not stanje[modul]
-                for i in submodul:
-                    send(i, stanje[modul])
-        elif typ.get(modul) == '&':
-            print('')
-        elif modul == 'broadcaster':
-            for i in submodul:
-                send(i, signal)
-        else:
-            raise AssertionError()
+        def send(sig):
+            for mod in submodul:
+                nxt.update({(destination, mod): sig})
 
-
-    # def pulz(modul, signal):
-    #     submodul = data[modul]
-    #     if typ.get(modul) == '%':
-    #         if not signal:
-    #             stanje[modul].append(not stanje[modul][-1])
-    #             for i in submodul:
-    #                 pulz(i, stanje[modul][-1])
-    #     elif typ.get(modul) == '&':
-    #         pass
-    #     elif modul == 'broadcaster':
-    #         for i in submodul:
-    #             pulz(i, signal)
-    #     else:
-    #         raise AssertionError()
-
+        nxt = {}
+        for(source, destination), signal in signals.items():
+            if destination not in data:
+                continue
+            submodul = data[destination]
+            if typ.get(destination) == '%':
+                if not signal:
+                    send(stanje[destination])
+            elif typ.get(destination) == '&':
+                if all(stanje[destination].values()):
+                    send(False)
+                else:
+                    send(True)
+            elif destination == 'broadcaster':
+                send(signal)
+        return nxt
 
     # Part 1
     if True:
-        # conj_in = {k: [kk for kk, vv in data.items() if k in vv] for k, v in typ.items() if v == '&'}
-        # stanje = {i: [False] if typ.get(i) == '%' else ([[False] * len(conj_in[i])] if typ.get(i) == '&' else []) for i in data}
-    #    conj_in = {k: {kk: False for kk, vv in data.items() if k in vv} for k, v in typ.items() if v == '&'}
-        vhod = {k: {kk: False for kk, vv in data.items() if k in vv} for k, v in typ.items() if v == '&'} | {k: False for k, v in typ.items() if v == '%'}
-        stanje = {i: [False] if typ.get(i) in {'%', '&'} else [] for i in data}
-        ppp = {False: 0, True: 0}
+        conj_in = {k: {kk for kk, vv in data.items() if k in vv} for k, v in typ.items() if v == '&'}
+        stanje =  {k: {kk: False for kk, vv in data.items() if k in vv} for k, v in typ.items() if v == '&'} | {k: False for k, v in typ.items() if v == '%'}
+        stevec = {False: 0, True: 0}
         for _ in range(1000):
-            for k, v in data.items():
-                pulz(k, False if k == 'broadcaster' else stanje[k][-1])
-        print(f"A1: {0}")
+   #         vhod_ = copy.deepcopy(vhod)
+            hist = []  
+   #         stevec[False] += 1  # Button
+            todo = {('button', 'broadcaster'): False}
+            while len(todo) > 0:
+                sprejem(todo)
+                todo = oddaja(todo)
 
+        print(f"A1: {math.prod(stevec.values())}")
+
+# tt:
+# 747761786
+# 771937371 too low
+# 709473499
+# 1668452499 too high
+
+# d
+# 642639957 too low
     # Part 2
+    #            proces('broadcaster', vhod)
     dat=copy.deepcopy(data)
     print(f"A2: {0}")
 
