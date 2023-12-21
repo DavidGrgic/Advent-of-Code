@@ -54,6 +54,8 @@ def main():
     rock = {(i, j) for i, j in zip(*np.where(data))}
 
     def p2(num, resitev, step, diff, order = 2):
+        if num < len(resitev):
+            return resitev[num]
         periods = (num - len(resitev)) // step + 1
         index = num - step * periods
         diff_ = resitev[index] - resitev[index-step]
@@ -64,8 +66,7 @@ def main():
     diff = None
     while True:
         resitev.append(len(pot))
-        if len(resitev) % 65 == 0:
-            print(len(resitev))
+        if len(resitev) % 2**6 == 0:
             for step in range(data.shape[0], len(resitev), data.shape[0]):   # Zelimo imeti vsaj dve tocki vec kot je order, zado da dobimo vsaj dva odvoda in pogledamo, če sta ista
                 diff = np.diff(resitev[::-step][:2+2], 2)   # Pricakujemo vzorec v kvadratnem narascanju stevila polj, zato n = 2. Zelimo imeti vsaj dva elementa več kot order funkcij (2+2)
                 if len(diff) > 1 and len(set(diff)) == 1:
@@ -74,10 +75,6 @@ def main():
             if isinstance(diff, int):
                 break
         pot = {k for ij in pot for s in {(1,0), (-1,0), (0,1), (0,-1)} for k in exp(ij, s)}
-    print(f"{step}, {diff}")
-    print(p2(500, resitev, step, diff))
-    print(p2(1000, resitev, step, diff))
-    print(p2(5000, resitev, step, diff))
     print(f"A2: {p2(26501365, resitev, step, diff)}")
 
 if __name__ == '__main__':
