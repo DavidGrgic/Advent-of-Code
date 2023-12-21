@@ -10,7 +10,7 @@ import pandas as pd, numpy as np
 #from functools import cache   # @cache
 #import networkx as nx   # G = nx.DiGraph(); G.add_edges_from([('Start', 'B'), ('B', 'C'), ('Start', 'C'), ('C', 'End')]); nx.shortest_path(G, 'Start', 'End'); G.add_weighted_edges_from([('Start', 'B', 1.7), ('B', 'C', 0.6), ('Start', 'C', 2.9), ('C', 'End', 0.2)]); nx.shortest_path(G, 'Start', 'End', 'weight')
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
-_img_map = {0: ' ', 1: '#'}; _img_print = lambda x: print('\n'+'\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]));
+_img_map = {0: '.', 1: 'O'}; _img_print = lambda x: print('\n'+'\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]));
 def _dict2img(x):
     offset = tuple(int(min(i[j] for i in x.keys())) for j in range(2))
     img = np.zeros(tuple(int(max(i[j] for i in x.keys())-offset[j])+1 for j in range(2))).astype(int)
@@ -23,19 +23,45 @@ def main():
     with open('t.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
-            if ln == '': # Nov blok podatkov
-                pass
-            da = ln.split(',')
+            da = [1 if i == '#' else 0 for i in ln]
+            r = ln.find('S')
+            if r >= 0:
+                start = (c,r)
             data += [da]
+    data = np.array(data)
+
+    plus = lambda x, y: (x[0]+y[0], x[1]+y[1])
 
     # Part 1
-    if True:
-        dat=copy.deepcopy(data)
-        print(f"A1: {0}")
+    if False:
+        pot = np.zeros_like(data)
+        pot[start] = 1
+        for _ in range(6):
+            idx = np.where(pot == 1)
+            pot = np.zeros_like(data)
+            for i,j in zip(*idx):
+                for s in {(1,0), (-1,0), (0,1), (0,-1)}:
+                    i_, j_ = plus((i,j), s)
+                    if 0 <= i_ < data.shape[0] and 0 <= j_ < data.shape[1] and data[i_, j_] != 1:
+                        pot[i_, j_] = 1
+      #      _img_print(pot)
+        print(f"A1: {pot.sum()}")
+        _img_print(pot)
 
     # Part 2
-    dat=copy.deepcopy(data)
-    print(f"A2: {0}")
+    ii = data.shape[0]
+    jj = data.shape[1]
+    rock = {(i, j) for i, j in zip(*np.where(data))}
+    pot = {start}
+    for _ in range(500):
+        pot_ = set()
+        for i, j in pot:
+            for s in {(1,0), (-1,0), (0,1), (0,-1)}:
+                i_, j_ = plus((i,j), s)
+                if (i_ % ii, j_ % jj) not in rock:
+                    pot_ |= {(i_, j_)}
+        pot = pot_
+    print(f"A2: {len(pot)}")
 
 if __name__ == '__main__':
     main()
