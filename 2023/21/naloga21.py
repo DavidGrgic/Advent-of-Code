@@ -69,6 +69,7 @@ def main():
     pot = {ij: 0 for ij in sosed}
     pot[start] += 1
     for _ in range(6):
+        pot_ = {ij: 0 for ij in sosed}
         for ij, v in pot.items():
             for ss in sosed[ij]:
                 pot[ss] += v
