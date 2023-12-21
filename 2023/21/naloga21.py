@@ -52,15 +52,28 @@ def main():
     ii = data.shape[0]
     jj = data.shape[1]
     rock = {(i, j) for i, j in zip(*np.where(data))}
-    pot = {start}
-    for _ in range(500):
-        pot_ = set()
-        for i, j in pot:
+    sosed = {}
+    for i in range(ii):
+        for j in range(jj):
+            if (i % ii, j % jj) in rock:
+                continue
+            sos = {}
             for s in {(1,0), (-1,0), (0,1), (0,-1)}:
                 i_, j_ = plus((i,j), s)
-                if (i_ % ii, j_ % jj) not in rock:
-                    pot_ |= {(i_, j_)}
-        pot = pot_
+                over = 1 if i_ != (i_ % ii) or j_ != (j_ % jj) else 0
+                i_ %= ii
+                j_ %= jj
+                if (i_, j_) not in rock:
+                    sos |= {(i_, j_): over}
+            sosed.update({(i,j): sos})
+    pot = {ij: 0 for ij in sosed}
+    pot[start] += 1
+    for _ in range(6):
+        for ij, v in pot.items():
+            for ss in sosed[ij]:
+                pot[ss] += v
+            pot[ij] -= v
+        
     print(f"A2: {len(pot)}")
 
 if __name__ == '__main__':
