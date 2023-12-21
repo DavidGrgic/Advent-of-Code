@@ -52,7 +52,7 @@ def main():
     # Part 2
     exp = lambda ij, s: (lambda ij_ = plus(ij, s): set() if (ij_[0] % ii, ij_[1] % jj) in rock else {ij_})()
     rock = {(i, j) for i, j in zip(*np.where(data))}
-    
+
     def p2(num, resitev, step, diff, order = 2):
         periods = (num - len(resitev)) // step + 1
         index = num - step * periods
@@ -64,20 +64,17 @@ def main():
     diff = None
     while True:
         resitev.append(len(pot))
-        if len(resitev) % 40 == 0:
+        if len(resitev) % 65 == 0:
             print(len(resitev))
-            for order in range(2,3):   # Test on second and third order derivative
-                for step in range(1, len(resitev) // (order+2)):   # Zelimo imeti vsaj dve tocki vec kot je order, zado da dobimo vsaj dva odvoda in pogledamo, če sta ista
-                    diff = np.diff(resitev[:step-1:-step], order)
-                    if len(set(diff)) == 1:
-                        diff = int(next(iter(diff)))
-                        break
-                if isinstance(diff, int):
+            for step in range(data.shape[0], len(resitev), data.shape[0]):   # Zelimo imeti vsaj dve tocki vec kot je order, zado da dobimo vsaj dva odvoda in pogledamo, če sta ista
+                diff = np.diff(resitev[::-step][:2+2], 2)   # Pricakujemo vzorec v kvadratnem narascanju stevila polj, zato n = 2. Zelimo imeti vsaj dva elementa več kot order funkcij (2+2)
+                if len(diff) > 1 and len(set(diff)) == 1:
+                    diff = int(next(iter(diff)))
                     break
             if isinstance(diff, int):
                 break
         pot = {k for ij in pot for s in {(1,0), (-1,0), (0,1), (0,-1)} for k in exp(ij, s)}
-    print(f"{order}, {step}, {diff}")
+    print(f"{step}, {diff}")
     print(p2(500, resitev, step, diff))
     print(p2(1000, resitev, step, diff))
     print(p2(5000, resitev, step, diff))
