@@ -20,7 +20,7 @@ def _dict2img(x):
 def main():
     # Read
     data = []
-    with open('t.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             da = [1 if i == '#' else 0 for i in ln]
@@ -29,14 +29,16 @@ def main():
                 start = (c,r)
             data += [da]
     data = np.array(data)
+    ii = data.shape[0]
+    jj = data.shape[1]
 
     plus = lambda x, y: (x[0]+y[0], x[1]+y[1])
 
     # Part 1
-    if False:
+    if True:
         pot = np.zeros_like(data)
         pot[start] = 1
-        for _ in range(6):
+        for _ in range(64):
             idx = np.where(pot == 1)
             pot = np.zeros_like(data)
             for i,j in zip(*idx):
@@ -44,38 +46,42 @@ def main():
                     i_, j_ = plus((i,j), s)
                     if 0 <= i_ < data.shape[0] and 0 <= j_ < data.shape[1] and data[i_, j_] != 1:
                         pot[i_, j_] = 1
-      #      _img_print(pot)
+           #_img_print(pot)
         print(f"A1: {pot.sum()}")
-        _img_print(pot)
 
     # Part 2
-    ii = data.shape[0]
-    jj = data.shape[1]
+    exp = lambda ij, s: (lambda ij_ = plus(ij, s): set() if (ij_[0] % ii, ij_[1] % jj) in rock else {ij_})()
     rock = {(i, j) for i, j in zip(*np.where(data))}
-    sosed = {}
-    for i in range(ii):
-        for j in range(jj):
-            if (i % ii, j % jj) in rock:
-                continue
-            sos = {}
-            for s in {(1,0), (-1,0), (0,1), (0,-1)}:
-                i_, j_ = plus((i,j), s)
-                over = 1 if i_ != (i_ % ii) or j_ != (j_ % jj) else 0
-                i_ %= ii
-                j_ %= jj
-                if (i_, j_) not in rock:
-                    sos |= {(i_, j_): over}
-            sosed.update({(i,j): sos})
-    pot = {ij: 0 for ij in sosed}
-    pot[start] += 1
-    for _ in range(6):
-        pot_ = {ij: 0 for ij in sosed}
-        for ij, v in pot.items():
-            for ss in sosed[ij]:
-                pot[ss] += v
-            pot[ij] -= v
-        
-    print(f"A2: {len(pot)}")
+    
+    def p2(num, resitev, step, diff, order = 2):
+        periods = (num - len(resitev)) // step + 1
+        index = num - step * periods
+        diff_ = resitev[index] - resitev[index-step]
+        return resitev[index] + sum([diff_ + (i+1) * diff for i in range(periods)])
+    
+    pot = {start}
+    resitev = []
+    diff = None
+    while True:
+        resitev.append(len(pot))
+        if len(resitev) % 40 == 0:
+            print(len(resitev))
+            for order in range(2,3):   # Test on second and third order derivative
+                for step in range(1, len(resitev) // (order+2)):   # Zelimo imeti vsaj dve tocki vec kot je order, zado da dobimo vsaj dva odvoda in pogledamo, če sta ista
+                    diff = np.diff(resitev[:step-1:-step], order)
+                    if len(set(diff)) == 1:
+                        diff = int(next(iter(diff)))
+                        break
+                if isinstance(diff, int):
+                    break
+            if isinstance(diff, int):
+                break
+        pot = {k for ij in pot for s in {(1,0), (-1,0), (0,1), (0,-1)} for k in exp(ij, s)}
+    print(f"{order}, {step}, {diff}")
+    print(p2(500, resitev, step, diff))
+    print(p2(1000, resitev, step, diff))
+    print(p2(5000, resitev, step, diff))
+    print(f"A2: {p2(26501365, resitev, step, diff)}")
 
 if __name__ == '__main__':
     main()
