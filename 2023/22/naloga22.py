@@ -57,7 +57,6 @@ def main():
     if True:
         p1 = []
         for idx, brick in data.items():
-            print(idx)
             dat_ = dat.copy()
             dat_[np.where(dat_ == idx)] = 0
             dat__ = padec(dat_.copy())
@@ -68,7 +67,6 @@ def main():
     # Part 2
     p2 = {}
     for idx in set(data.keys()) - set(p1):
-        print(idx)
         dat_ = dat.copy()
         dat_[np.where(dat_ == idx)] = 0
         dat__ = padec(dat_.copy())
