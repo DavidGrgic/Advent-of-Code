@@ -5,8 +5,8 @@
 import math, copy, os, sys
 import pandas as pd, numpy as np
 #from collections import Counter
-#from fractions import Fraction
-#from itertools import permutations, combinations, product
+from fractions import Fraction
+from itertools import permutations, combinations, product
 #from functools import cache   # @cache
 #import networkx as nx   # G = nx.DiGraph(); G.add_edges_from([('Start', 'B'), ('B', 'C'), ('Start', 'C'), ('C', 'End')]); nx.shortest_path(G, 'Start', 'End'); G.add_weighted_edges_from([('Start', 'B', 1.7), ('B', 'C', 0.6), ('Start', 'C', 2.9), ('C', 'End', 0.2)]); nx.shortest_path(G, 'Start', 'End', 'weight')
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
@@ -20,22 +20,44 @@ def _dict2img(x):
 def main():
     # Read
     data = []
-    with open('t.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
-            if ln == '': # Nov blok podatkov
-                pass
-            da = ln.split(',')
-            data += [da]
+            da = ln.split(' @ ')
+            data.append(tuple(tuple(int(j) for j in i.split(',')) for i in da))
 
     # Part 1
     if True:
-        dat=copy.deepcopy(data)
-        print(f"A1: {0}")
+        xy = (200000000000000, 400000000000001)
+        p1 = 0
+        for par in combinations(data, 2):
+            k = [Fraction(i[-1][1], i[-1][0])  for i in par]
+            n = [par[i][0][1] - par[i][0][0] * v for i, v in enumerate(k)]
+            if k[0] == k[1]:   # parallel
+                continue
+            x = (n[1] - n[0]) / (k[0] - k[1])
+            y = k[0] * x + n[0]
+            t = [Fraction(x - p[0][0], p[1][0]) for p in par]
+            if any(i < 0 for i in t):
+                continue
+            if all(xy[0] <= i <= xy[1] for i in {x,y}):
+                p1+=1
+        print(f"A1: {p1}")
 
     # Part 2
-    dat=copy.deepcopy(data)
-    print(f"A2: {0}")
+    A = np.zeros((0,6))
+    b = np.zeros(0)
+    for d0, d1 in [(0,1), (0,2), (0,3)]:   # Prv in drugi delec
+        for sx, sy in [(0,1), (0,2)]:   # Prva in druga spremelnjivka (osi so 0:x, 1:y, 2:z)
+            a = np.zeros(6)
+            a[sx] = data[d0][-1][sy] - data[d1][-1][sy]
+            a[sy] = -(data[d0][-1][sx] - data[d1][-1][sx])
+            a[sx+3] = -(data[d0][0][sy] - data[d1][0][sy])
+            a[sy+3] = data[d0][0][sx] - data[d1][0][sx]
+            A = np.append(A, a.reshape((1,-1)), axis = 0)
+            b = np.append(b, np.array([  data[d0][0][sx] * data[d0][-1][sy]  -  data[d1][0][sx] * data[d1][-1][sy]  + data[d1][0][sy] * data[d1][-1][sx]  -  data[d0][0][sy] * data[d0][-1][sx]  ]))
+    p2 = np.linalg.solve(A, b)
+    print(f"A2: {int(p2[:3].sum().round(0))}")
 
 if __name__ == '__main__':
     main()
