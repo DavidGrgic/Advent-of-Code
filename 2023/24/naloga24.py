@@ -28,7 +28,7 @@ def main():
 
     # Part 1
     if True:
-        xy = (200000000000000, 400000000000001)
+        xy = (200000000000000, 400000000000000)
         p1 = 0
         for par in combinations(data, 2):
             k = [Fraction(i[-1][1], i[-1][0])  for i in par]
@@ -45,11 +45,12 @@ def main():
         print(f"A1: {p1}")
 
     # Part 2
-    A = np.zeros((0,6))
-    b = np.zeros(0)
+    dtype = 'int64'
+    A = np.zeros((0,6), dtype = dtype)
+    b = np.zeros(0, dtype = dtype)
     for d0, d1 in [(0,1), (0,2), (0,3)]:   # Prv in drugi delec
         for sx, sy in [(0,1), (0,2)]:   # Prva in druga spremelnjivka (osi so 0:x, 1:y, 2:z)
-            a = np.zeros(6)
+            a = np.zeros(6, dtype = dtype)
             a[sx] = data[d0][-1][sy] - data[d1][-1][sy]
             a[sy] = -(data[d0][-1][sx] - data[d1][-1][sx])
             a[sx+3] = -(data[d0][0][sy] - data[d1][0][sy])
