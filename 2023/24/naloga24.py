@@ -45,6 +45,14 @@ def main():
         print(f"A1: {p1}")
 
     # Part 2
+    # x, y, z, vx, vy, vz so začetne pozicije in hitrosti delca, ki ga ustrelimo
+    # x_i, y_i, z_i, vx_i, vy_i, yz_i so začetne pozicije in hitrosti kepice i
+    # Kjer se trčita delec in kepica, velja enako za vse tri dimenzije: x + t_i * vx = x_i + t_i * vx_i
+    # Iz česar izpeljemo čas trka dalca s kepico i: t_i = (x_i - x) / (vx - vx_i)
+    # Ter uporabimo ta čas da združio dve dimentiji, recimo x in y: (x_i - x) * (vy - vy_i) = (y_i - y) * (vx - vx_i)
+    # Napisemo se enako enacbo za trk delca in kepice j, spet za isti dimenziji: (x_j - x) * (vy - vy_j) = (y_j - y) * (vx - vx_j)
+    # Enacbi odstejemo, tako da odpade clen x * vx in dobimo: x * (vy_i - vy_j) - y * (vx_i - vx_j) - vx * (y_i - y_j) + vy * (x_i - x_j) = x_i * vy_i - x_j * vy_j - y_i * vx_i + y_j * vx_j
+    # Imamo torej 6 neznank (x, y, z, vx, vy, vz) in potrebujemo 6 enačb. DObimo jih tako, da kombiniramo dva para dimenzij (tretji par ni neodvisen od prvih dveh) ter tri pare kepic
     dtype = 'int64'
     A = np.zeros((0,6), dtype = dtype)
     b = np.zeros(0, dtype = dtype)
