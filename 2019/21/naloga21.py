@@ -80,6 +80,8 @@ def main():
 
     # Part 1
     if True:
+        # Skoči če je katera od naslednjih treh (A, B, C) luknja in D ni luknja.
+        # ( !A + !B + !C) * D  =  !( A * B * C) * D
         inst = [
             "NOT J J",
             "AND A J",
@@ -96,20 +98,18 @@ def main():
             print(''.join(chr(i) for i in out))
 
     # Part 2
+    # Skoči:
+    # - če je naslednja (A) luknja
+    # - na zalogo, če je ali B ali C luknja in sta D in H polni.
+    # !A + ( !B + !C) * D * H
     inst = [
-        "NOT T T",
-        "AND E T",
-        "AND F T",
-        "AND G T",
-        "AND H T",      
-        "OR I T",
-        "NOT J J",
-        "AND A J",
-        "AND B J",
-        "AND C J",
-        "NOT J J",
-        "AND D J",
-        "AND T J",
+            "NOT B J",
+            "NOT C T",
+            "OR T J",
+            "AND D J",
+            "AND H J",
+            "NOT A T",
+            "OR T J",
         "RUN"]
     inp = [ord(j) for i in inst for j in i+'\n']
     _dat, out, _pos, _bas, _con = intcode(copy.copy(data), inp)
