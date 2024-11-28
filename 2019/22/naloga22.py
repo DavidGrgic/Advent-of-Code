@@ -60,12 +60,73 @@ def main():
     if True:
         cards = shuffle(no)
         if len(cards) == 10:
-            print(' '.join(str(i[-1]) for i in sorted(cards.items(), key = lambda item: item[0])))
+            print('A1: ' + ' '.join(str(i[-1]) for i in sorted(cards.items(), key = lambda item: item[0])))
         else:
             print(f"A1: {next(iter(k for k, v in cards.items() if v == 2019))}")
 
+    def inv_shuffle(dat, kk, no):
+        for i in dat[::-1]:
+            match i:
+                case ('new',):
+                    kk = no - kk - 1
+                case ('cut', n):
+                    kk = (kk + n) % no
+                case ('inc', n):
+                    kk = (kk * pow(n,-1, no)) % no   # pow(n,-1,no) is the modular inverse of n modulo no
+        return kk
+
+    def remove_new(dat, no):
+        ret = []
+        for i in dat:
+            match i:
+                case ('new',):
+                    ret.extend([('inc', no - 1), ('cut', 1)])
+                case _:
+                    ret.append(i)
+        return ret
+
+    def reduce(dat, no):
+        ret = copy.deepcopy(dat)
+        pos = 0
+        while True:
+            match ret[pos], ret[pos+1]:
+                case ('cut', x), ('cut', y):
+                    ret = ret[:pos] + [('cut', (x + y) % no)] + ret[pos+2:]
+                    pos = max(pos-1, 0)
+                case ('inc', x), ('inc', y):
+                    ret = ret[:pos] + [('inc', (x * y) % no)] + ret[pos+2:]
+                    pos = max(pos-1, 0)
+                case ('cut', x), ('inc', y):
+                    ret = ret[:pos] + [('inc', y), ('cut', (x * y) % no)] + ret[pos+2:]
+                    pos = max(pos-1, 0)
+                case _:
+                    pos += 1
+            if pos >= len(ret) - 1:
+                break
+        return ret
+
     # Part 2
-    print(f"A2: ***{cards[2000]}***")
+    no = 119315717514047
+    if no == 10:
+        print('A2: ' + ' '.join(str(inv_shuffle(data, k, no)) for k in range(no)))
+    else:
+        nn = 101741582076661
+        shuffle_2 = set()
+        nn_ = nn
+        for k in range(int(math.log(nn) // math.log(2)), -1, -1):
+            ostanek = nn_ - 2**k
+            if ostanek >= 0:
+                shuffle_2 |= {k}
+                nn_ = ostanek
+
+        program = {}
+        for i in range(max(shuffle_2) + 1):
+            program.update({i: reduce(2 * program[i-1] if i-1 in program else remove_new(data, no), no)})
+
+        kk = 2020
+        for i in shuffle_2:
+            kk = inv_shuffle(program[i], kk, no)
+        print(f"A2: {kk}")
 
 if __name__ == '__main__':
     main()
