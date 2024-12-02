@@ -4,7 +4,7 @@
 """
 import math, copy, os, sys
 import pandas as pd, numpy as np
-from collections import Counter
+#from collections import Counter
 #from fractions import Fraction
 #from itertools import permutations, combinations, product
 #from functools import cache   # @cache
@@ -23,20 +23,37 @@ def main():
     with open('d.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
-            da = tuple(int(i) for i in ln.split())
+            da = [int(i) for i in ln.split()]
             data += [da]
+    data = [np.array(i) for i in data]
 
     # Part 1
     if True:
-        left = sorted(i[0] for i in data)
-        right = sorted(i[1] for i in data)
-        diff = [abs(y-x) for x,y in zip(left, right)]
-        print(f"A1: {sum(diff)}")
+        diff = [np.diff(i) for i in data]
+        chk1 = np.array([np.all(i > 0) | np.all(i < 0) for i in diff])
+        chk2 = np.array([np.all((1 <= np.abs(i)) & (np.abs(i) <= 3)) for i in diff])
+        chk = chk1 & chk2
+        print(f"A1: {chk.sum()}")
 
     # Part 2
-    freq = Counter(right)
-    simi = [i*freq[i] for i in left]
-    print(f"A2: {sum(simi)}")
+    def check(dat):
+        diff = np.diff(dat)
+        chk1 = np.all(diff > 0) | np.all(diff < 0)
+        chk2 = np.all((1 <= np.abs(diff)) & (np.abs(diff) <= 3))
+        return bool(chk1 & chk2)
+    
+    p2 = []
+    for da in data:
+        if d := check(da):
+            p2.append(d)
+            continue
+        else:
+            d = False
+            for i in range(len(da)):
+                if d := check(np.concatenate((da[:i], da[i+1:]))):
+                    break
+            p2.append(d)
+    print(f"A2: {sum(p2)}")
 
 if __name__ == '__main__':
     main()
