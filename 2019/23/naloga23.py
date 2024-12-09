@@ -11,72 +11,127 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..'))
 import mat
 _img_map = {0: '.', 1: '#'}; _img_print = lambda x: print('\n'.join([''.join(_img_map.get(i,'?') for i in j) for j in x]))
 
-def main():
 
-    # Read
-    with open('d.txt', 'r') as file:
+class IntCode():
+    
+    def __init__(self, code: list[int]):
+        self.pointer = 0
+        self.base = 0
+        assert isinstance(code, (list, tuple, dict))
+        self.code = code.copy() if isinstance(code, dict) else {i: int(v) for i, v in enumerate(code)}
+    
+    def __repr__(self):
+        return f"pointer={self.pointer}: base={self.base}\n{','.join(str(i) for i in self.to_list())}"
+    
+    def run(self):
+        while True:
+            match self.code[self.pointer]:
+                case 99:
+                    self.pointer += 1
+                    return
+                case 1:  # Add by position
+                    self.code[self.code[self.pointer+3]] = self.code[self.code[self.pointer+1]] + self.code[self.code[self.pointer+2]]
+                    self.pointer += 4
+                case 2:  # Multiply by position
+                    self.code[self.code[self.pointer+3]] = self.code[self.code[self.pointer+1]] * self.code[self.code[self.pointer+2]]
+                    self.pointer += 4
+                case _:
+                    raise RuntimeError('Something went wrong.')
+
+    def to_list(self):
+        return list(i[1] for i in sorted(self.code.items()))
+
+def intcode(dat, _input = [], pos = 0, base = 0, no_out = None):
+    _output = []
+    _consumed = []
+    address = lambda p, m: p+base if m == 2 else p
+    value = lambda p, m: dat.get(address(dat[p],m), 0) if m in {0,2} else dat.get(p, 0)
+    while True:
+        ins = str(dat[pos])
+        ins = (5-len(ins))*'0' + ins
+        mod = [int(i) for i in ins[-3::-1]]
+        ins = int(ins[-2:])
+        if ins == 99:
+            stop = True
+            break
+        if ins == 1:
+            assert mod[2] in {0,2}
+            dat[address(dat[pos+3], mod[2])] = value(pos+1, mod[0]) + value(pos+2, mod[1])
+            pos += 4
+        elif ins == 2:
+            assert mod[2] in {0,2}
+            dat[address(dat[pos+3], mod[2])] = value(pos+1, mod[0]) * value(pos+2, mod[1])
+            pos += 4
+        elif ins == 3:
+            assert mod[0] in {0,2}
+            assert len(_input) > 0
+            dat[address(dat[pos+1], mod[0])] = _input[0]
+            _consumed += [_input[0]]
+            _input = _input[1:]
+            pos += 2
+        elif ins == 4:
+            _output.append(value(pos+1, mod[0]))
+            pos += 2
+            if no_out is not None and len(_output) >= no_out:
+                stop = False
+                break
+        elif ins == 5:
+            if value(pos+1, mod[0]) != 0:
+                pos = value(pos+2, mod[1])
+            else:
+                pos += 3
+        elif ins == 6:
+            if value(pos+1, mod[0]) == 0:
+                pos = value(pos+2, mod[1])
+            else:
+                pos += 3
+        elif ins == 7:
+            assert mod[2] in {0,2}
+            dat[address(dat[pos+3], mod[2])] = 1 if value(pos+1, mod[0]) < value(pos+2, mod[1]) else 0
+            pos += 4
+        elif ins == 8:
+            assert mod[2] in {0,2}
+            dat[address(dat[pos+3], mod[2])] = 1 if value(pos+1, mod[0]) == value(pos+2, mod[1]) else 0
+            pos += 4
+        elif ins == 9:
+            base += value(pos+1, mod[0])
+            pos += 2
+        else:
+            raise AssertionError
+    return dat, _output, -1 if stop else pos, base, _consumed
+
+def read(filename):
+    with open(filename, 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             data = {i: int(v) for i, v in enumerate(ln.split(','))}
+    return data
 
-    def intcode(dat, _input = [], pos = 0, base = 0, no_out = None):
-        _output = []
-        _consumed = []
-        address = lambda p, m: p+base if m == 2 else p
-        value = lambda p, m: dat.get(address(dat[p],m), 0) if m in {0,2} else dat.get(p, 0)
-        while True:
-            ins = str(dat[pos])
-            ins = (5-len(ins))*'0' + ins
-            mod = [int(i) for i in ins[-3::-1]]
-            ins = int(ins[-2:])
-            if ins == 99:
-                stop = True
-                break
-            if ins == 1:
-                assert mod[2] in {0,2}
-                dat[address(dat[pos+3], mod[2])] = value(pos+1, mod[0]) + value(pos+2, mod[1])
-                pos += 4
-            elif ins == 2:
-                assert mod[2] in {0,2}
-                dat[address(dat[pos+3], mod[2])] = value(pos+1, mod[0]) * value(pos+2, mod[1])
-                pos += 4
-            elif ins == 3:
-                assert mod[0] in {0,2}
-                assert len(_input) > 0
-                dat[address(dat[pos+1], mod[0])] = _input[0]
-                _consumed += [_input[0]]
-                _input = _input[1:]
-                pos += 2
-            elif ins == 4:
-                _output.append(value(pos+1, mod[0]))
-                pos += 2
-                if no_out is not None and len(_output) >= no_out:
-                    stop = False
-                    break
-            elif ins == 5:
-                if value(pos+1, mod[0]) != 0:
-                    pos = value(pos+2, mod[1])
-                else:
-                    pos += 3
-            elif ins == 6:
-                if value(pos+1, mod[0]) == 0:
-                    pos = value(pos+2, mod[1])
-                else:
-                    pos += 3
-            elif ins == 7:
-                assert mod[2] in {0,2}
-                dat[address(dat[pos+3], mod[2])] = 1 if value(pos+1, mod[0]) < value(pos+2, mod[1]) else 0
-                pos += 4
-            elif ins == 8:
-                assert mod[2] in {0,2}
-                dat[address(dat[pos+3], mod[2])] = 1 if value(pos+1, mod[0]) == value(pos+2, mod[1]) else 0
-                pos += 4
-            elif ins == 9:
-                base += value(pos+1, mod[0])
-                pos += 2
-            else:
-                raise AssertionError
-        return dat, _output, -1 if stop else pos, base, _consumed
+def day02():
+    t0 = IntCode([1,9,10,3,2,3,11,0,99,30,40,50]); t0.run()
+    assert t0.code[0] == 3500
+    t1 = IntCode([1,0,0,0,99]); t1.run()
+    assert t1.to_list() == [2,0,0,0,99]
+    t2 = IntCode([2,3,0,3,99]); t2.run()
+    assert t2.to_list() == [2,3,0,6,99]
+    t3 = IntCode([2,4,4,5,99,0]); t3.run()
+    assert t3.to_list() == [2,4,4,5,99,9801]
+    t4 = IntCode([1,1,1,4,99,5,6,0,99]); t4.run()
+    assert t4.to_list() == [30,1,1,4,2,5,6,0,99]
+    data = read(r'.\..\02\data.txt')
+    dat = data.copy(); dat[1] = 12; dat[2] = 2
+    #_dat, out, _pos, _bas, _con = intcode(dat.copy())
+    p1 = IntCode(dat); p1.run()
+    assert p1.code[0] == 2842648
+
+def day05():
+    pass
+
+def day09():
+    pass
+
+def main():
+    data = read('d.txt')
 
     # Part 1
     if True:
@@ -93,10 +148,17 @@ def main():
                 except:
                     no.update({k: j-1})
                     break
+        for i in (lambda x = [j for i in izhod.values() for j in i]: [x[i:i+3] for i in range(0, len(x), 3)])():
+            try:
+                _dat, out, _pos, _bas, _con = intcode(copy.copy(data), i , no_out = 1)
+                print('OK')
+            except:
+                print('Fail')
         print(f"A1: {0}")
 
     # Part 2
     print(f"A2: {0}")
 
 if __name__ == '__main__':
+    day02()
     main()
