@@ -14,29 +14,59 @@ _img_map = {0: '.', 1: '#'}; _img_print = lambda x: print('\n'.join([''.join(_im
 
 class IntCode():
     
-    def __init__(self, code: list[int]):
+    def __init__(self, code: list[int], input_ = None):
         self.pointer = 0
         self.base = 0
         assert isinstance(code, (list, tuple, dict))
         self.code = code.copy() if isinstance(code, dict) else {i: int(v) for i, v in enumerate(code)}
+        self.input_ = [] if input_ is None else [[int(i) for i in input_]]
+        self.input_consumed = []
+        self.output_ = []
+        
     
     def __repr__(self):
         return f"pointer={self.pointer}: base={self.base}\n{','.join(str(i) for i in self.to_list())}"
     
-    def run(self):
+    def run(self, input_ = None):
+        address = lambda offset: self.code[self.pointer+offset]
+        value = lambda offset: self.code[self.pointer+offset] if mode[offset-1] else self.code[address(offset)]
+        if input_ is not None:
+            self.input_add(input_)
         while True:
-            match self.code[self.pointer]:
+            instruction = self.code[self.pointer]
+            mode = [int(i) for i in str(instruction // 100).rjust(3,'0')[::-1]]
+            match instruction % 100:
                 case 99:
                     self.pointer += 1
-                    return
+                    status = None
+                    break
                 case 1:  # Add by position
-                    self.code[self.code[self.pointer+3]] = self.code[self.code[self.pointer+1]] + self.code[self.code[self.pointer+2]]
+                    self.code[address(3)] = value(1) + value(2)
                     self.pointer += 4
                 case 2:  # Multiply by position
-                    self.code[self.code[self.pointer+3]] = self.code[self.code[self.pointer+1]] * self.code[self.code[self.pointer+2]]
+                    self.code[address(3)] = value(1) * value(2)
                     self.pointer += 4
+                case 3:
+                    if len(self.input_) > 0:
+                        in_ = self.input_.pop(0)
+                        self.code[address(1)] = in_
+                        self.input_consumed.append(in_)
+                        self.pointer += 2
+                    else:
+                        status = True
+                        break
+                case 4:
+                    self.output_.append(self.code[address(1)])
+                    self.pointer += 2
                 case _:
                     raise RuntimeError('Something went wrong.')
+        return status  # None: Program terminated, True: Waiting for input
+
+    def input_add(self, input_):
+        self.input_.extend([int(i) for i in input_] if hasattr(input_, '__iter__') else [int(input_)])
+        
+    def output(self):
+        return self.output_
 
     def to_list(self):
         return list(i[1] for i in sorted(self.code.items()))
@@ -125,7 +155,14 @@ def day02():
     assert p1.code[0] == 2842648
 
 def day05():
-    pass
+    t0 = IntCode([3,0,4,0,99]);
+    assert t0.run()
+    t0.run(-72)
+    assert t0.output() == [-72]
+    t1 = IntCode([1002,4,3,4,33]); t1.run()
+    assert t1.to_list() == [1002, 4, 3, 4, 99]
+    t2 = IntCode([1101,100,-1,4,0]); t2.run()
+    assert t2.to_list() == [1101, 100, -1, 4, 99]
 
 def day09():
     pass
@@ -161,4 +198,5 @@ def main():
 
 if __name__ == '__main__':
     day02()
+    day05()
     main()
