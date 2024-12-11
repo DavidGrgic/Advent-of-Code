@@ -18,22 +18,22 @@ class IntCode():
         self.pointer = 0
         self.base = 0
         assert isinstance(code, (list, tuple, dict))
-        self.code = code.copy() if isinstance(code, dict) else {i: int(v) for i, v in enumerate(code)}
+        self.code_ = code.copy() if isinstance(code, dict) else {i: int(v) for i, v in enumerate(code)}
         self.input_ = [] if input_ is None else [[int(i) for i in input_]]
         self.input_consumed = []
         self.output_ = []
         
     
     def __repr__(self):
-        return f"pointer={self.pointer}: base={self.base}\n{','.join(str(i) for i in self.to_list())}"
+        return f"pointer={self.pointer}: base={self.base}\n{','.join(str(i) for i in self.code())}"
     
     def run(self, input_ = None):
-        address = lambda offset: self.code[self.pointer+offset]
-        value = lambda offset: self.code[self.pointer+offset] if mode[offset-1] else self.code[address(offset)]
+        address = lambda offset: self.code_[self.pointer+offset] + (self.base if mode[offset-1] == 2 else 0)
+        value = lambda offset: self.code_.get(self.pointer+offset, 0) if mode[offset-1] == 1 else self.code_.get(address(offset), 0)
         if input_ is not None:
             self.input_add(input_)
         while True:
-            instruction = self.code[self.pointer]
+            instruction = self.code_[self.pointer]
             mode = [int(i) for i in str(instruction // 100).rjust(3,'0')[::-1]]
             match instruction % 100:
                 case 99:
@@ -41,22 +41,41 @@ class IntCode():
                     status = None
                     break
                 case 1:  # Add by position
-                    self.code[address(3)] = value(1) + value(2)
+                    self.code_[address(3)] = value(1) + value(2)
                     self.pointer += 4
                 case 2:  # Multiply by position
-                    self.code[address(3)] = value(1) * value(2)
+                    self.code_[address(3)] = value(1) * value(2)
                     self.pointer += 4
                 case 3:
                     if len(self.input_) > 0:
                         in_ = self.input_.pop(0)
-                        self.code[address(1)] = in_
+                        self.code_[address(1)] = in_
                         self.input_consumed.append(in_)
                         self.pointer += 2
                     else:
                         status = True
                         break
                 case 4:
-                    self.output_.append(self.code[address(1)])
+                    self.output_.append(self.code_[address(1)])
+                    self.pointer += 2
+                case 5:
+                    if value(1) != 0:
+                        self.pointer = value(2)
+                    else:
+                        self.pointer += 3
+                case 6:
+                    if value(1) == 0:
+                        self.pointer = value(2)
+                    else:
+                        self.pointer += 3
+                case 7:
+                    self.code_[address(3)] = 1 if value(1) < value(2) else 0
+                    self.pointer += 4
+                case 8:
+                    self.code_[address(3)] = 1 if value(1) == value(2) else 0
+                    self.pointer += 4
+                case 9:
+                    self.base += value(1)
                     self.pointer += 2
                 case _:
                     raise RuntimeError('Something went wrong.')
@@ -68,8 +87,8 @@ class IntCode():
     def output(self):
         return self.output_
 
-    def to_list(self):
-        return list(i[1] for i in sorted(self.code.items()))
+    def code(self):
+        return list(i[1] for i in sorted(self.code_.items()))
 
 def intcode(dat, _input = [], pos = 0, base = 0, no_out = None):
     _output = []
@@ -139,33 +158,44 @@ def read(filename):
 
 def day02():
     t0 = IntCode([1,9,10,3,2,3,11,0,99,30,40,50]); t0.run()
-    assert t0.code[0] == 3500
+    assert t0.code_[0] == 3500
     t1 = IntCode([1,0,0,0,99]); t1.run()
-    assert t1.to_list() == [2,0,0,0,99]
+    assert t1.code() == [2,0,0,0,99]
     t2 = IntCode([2,3,0,3,99]); t2.run()
-    assert t2.to_list() == [2,3,0,6,99]
+    assert t2.code() == [2,3,0,6,99]
     t3 = IntCode([2,4,4,5,99,0]); t3.run()
-    assert t3.to_list() == [2,4,4,5,99,9801]
+    assert t3.code() == [2,4,4,5,99,9801]
     t4 = IntCode([1,1,1,4,99,5,6,0,99]); t4.run()
-    assert t4.to_list() == [30,1,1,4,2,5,6,0,99]
+    assert t4.code() == [30,1,1,4,2,5,6,0,99]
     data = read(r'.\..\02\data.txt')
     dat = data.copy(); dat[1] = 12; dat[2] = 2
     #_dat, out, _pos, _bas, _con = intcode(dat.copy())
     p1 = IntCode(dat); p1.run()
-    assert p1.code[0] == 2842648
+    assert p1.code_[0] == 2842648
 
 def day05():
-    t0 = IntCode([3,0,4,0,99]);
-    assert t0.run()
+    t0 = IntCode([3,0,4,0,99]); assert t0.run()
     t0.run(-72)
     assert t0.output() == [-72]
     t1 = IntCode([1002,4,3,4,33]); t1.run()
-    assert t1.to_list() == [1002, 4, 3, 4, 99]
+    assert t1.code() == [1002, 4, 3, 4, 99]
     t2 = IntCode([1101,100,-1,4,0]); t2.run()
-    assert t2.to_list() == [1101, 100, -1, 4, 99]
+    assert t2.code() == [1101, 100, -1, 4, 99]
+    data = read(r'.\..\05\data.txt')
+    p1 = IntCode(data); p1.run(1)
+    assert p1.output()[-1] == 13547311
+    t3 = IntCode([3,9,8,9,10,9,4,9,99,-1,8]); t3.run(9)
+    assert t3.output() == [0]
+    p2 = IntCode(data); p2.run(5)
+    assert p2.output()[-1] == 236453
 
 def day09():
-    pass
+    t0 = IntCode([109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99]); t0.run()
+    assert t0.output() == [109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99]
+    t1 = IntCode([1102,34915192,34915192,7,4,7,99,0]); t1.run()
+    assert t1.output() == [1219070632396864]
+    t2 = IntCode([104,1125899906842624,99]); t2.run()
+    assert t2.output() == [1125899906842624]
 
 def main():
     data = read('d.txt')
@@ -199,4 +229,5 @@ def main():
 if __name__ == '__main__':
     day02()
     day05()
+    day09()
     main()

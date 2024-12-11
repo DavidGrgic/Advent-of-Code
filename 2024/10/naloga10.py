@@ -42,12 +42,12 @@ def main():
 
     # Part 1
     if True:
-        p1 = sum(nx.has_path(G, se[0], se[1]) for se in pairs)
-        print(f"A1: {p1}")
+        p1 = {se for se in pairs if nx.has_path(G, se[0], se[1])}
+        print(f"A1: {len(p1)}")
 
     # Part 2
     p2 = 0
-    for se in pairs:
+    for se in p1:
         p2 += len([i for i in nx.all_simple_paths(G, se[0], se[1])])
     print(f"A2: {p2}")
 
