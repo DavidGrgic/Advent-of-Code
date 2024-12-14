@@ -38,6 +38,17 @@ def main():
     data += [da]
 
     def opt(Ax, Ay, Bx, By, X, Y):
+        """
+        Equality constraints, subject to variables a and b:
+            a * Ax + b * Bx = X
+            a * Ay + b * By = Y
+        Extracting b from first equation:
+            b = (X - a * Ax) / Bx
+        And inserting it into second equation gives:
+            a = (Y * Bx - X * By) / (Ay * Bx - Ax * By) = ste / ime
+        If deviding numerator (ste) with denominator (ime) gives integer, than 
+        this is valid solution.
+        """
         ste = Y*Bx-X*By
         ime = Ay*Bx-Ax*By
         a, mod = divmod(ste, ime)

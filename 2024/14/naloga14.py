@@ -30,27 +30,23 @@ def main():
             dat_.append(pv | {'p': [x % dim[0], y % dim[1]]})
         return dat_
 
-    def quad(pos):
-        qua = [[p for p in pos if p[0] < dim[0]//2 and p[1] < dim[1]//2]]
-        qua += [[p for p in pos if p[0] < dim[0]//2 and p[1] > dim[1]//2]]
-        qua += [[p for p in pos if p[0] > dim[0]//2 and p[1] < dim[1]//2]]
-        qua += [[p for p in pos if p[0] > dim[0]//2 and p[1] > dim[1]//2]]
-        return qua
-
     # Part 1
     if True:
         dat=copy.deepcopy(data)
         for _ in range(100):
             dat = second(dat)
         pos = [d['p'] for d in dat]
-        qua = quad(pos)
+        qua = [[p for p in pos if p[0] < dim[0]//2 and p[1] < dim[1]//2]]
+        qua += [[p for p in pos if p[0] < dim[0]//2 and p[1] > dim[1]//2]]
+        qua += [[p for p in pos if p[0] > dim[0]//2 and p[1] < dim[1]//2]]
+        qua += [[p for p in pos if p[0] > dim[0]//2 and p[1] > dim[1]//2]]
         print(f"A1: {math.prod([len(q) for q in qua])}")
 
     # Part 2
     dat=copy.deepcopy(data)
     _img_print = lambda x: print('\n'+'\n'.join([''.join('#' if (j,i) in x else '.' for i in range(dim[1])) for j in range(0,dim[0],1)]))
 
-    def tree(pos, size = 4):
+    def tree(pos, size = 5):
         """ Expecting up or down oriented triangle of some size. """
         for p in pos:
             for d in {1,-1}:
@@ -67,8 +63,7 @@ def main():
         sec += 1
         dat = second(dat)
         pos = [tuple(d['p']) for d in dat]
-        if (p := tree(pos,3)):
-            print(f"{sec}: {p}")
+        if (p := tree(pos, 4)):
             _img_print(pos)
             break
     print(f"A2: {sec}")
