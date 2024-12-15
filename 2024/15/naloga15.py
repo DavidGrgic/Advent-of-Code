@@ -18,11 +18,12 @@ def _dict2img(x):
     return img
 
 def main():
+    filename = 't2.txt'
     # Read
     wall = set()
     box = set()
     move = None
-    with open('t.txt', 'r') as file:
+    with open(filename, 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             if ln == '': # Nov blok podatkov
@@ -66,8 +67,9 @@ def main():
                 else:
                     continue
             robot = rob_
-#        print(mov)
-#        _img_print(_dict2img({i:1 for i in wall} | {i:2 for i in box} | {robot: 3}))
+            if True:
+                print(mov)
+                _img_print(_dict2img({i:1 for i in wall} | {i:2 for i in box} | {robot: 3}))
         print(f"A1: {sum(100*i[0]+i[1] for i in box)}")
 
     # Part 2
@@ -76,7 +78,7 @@ def main():
     box = set()
     move = None
     map_ = {'#': '##', 'O': '[]', '.': '..', '@': '@.'}
-    with open('t2.txt', 'r') as file:
+    with open(filename, 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             if ln == '': # Nov blok podatkov
@@ -96,35 +98,35 @@ def main():
 
     def push(xx, box):
         xx_ = tuple(plus(i, dir_) for i in xx)
-        feas = []
+        obstacle = set()
         for x in xx_:
             if x in wall:
-                feas.append(False)
-                break
-            if x in {j for i in box for j in i}:
-                x_ = next(iter({i for i in box if x in i}))
-                f, b_ = push(xx_, box - {x_})
-                if f:
-                    feas.append(True)
-                else:
-                    feas.append(False)
-                    break
-            feas.append(True)
-        if all(feas):
-            return xx_, (box - {xx}) | {xx_}
+                return None, set()
+            elif x in {j for i in box for j in i}:
+                obstacle |= {next(iter({i for i in box if x in i}))}
+        if len(obstacle) == 0:
+            return xx_, box
         else:
-            return False, box
+            box_ = set()
+            for oo in obstacle:
+                oo_, bb_ = push(oo, box - obstacle)
+                if oo_:
+                    box_ |= bb_ | {oo_}
+                else:
+                    return None, set()
+        return xx_, box_
 
     for mov in move:
         dir_ = direct[mov]
-        rob_ = plus(robot, dir_)
-        feas, box_ = push((rob_,), box)
-        if feas:
-            robot = feas
-            box = box_ - {(robot,)}
-        print(mov)
-        _img_print(_dict2img({i:1 for i in wall} | {i[0]:4 for i in box} | {i[1]:5 for i in box} | {robot: 3}))
+        rob_, box_ = push((robot,), box)
+        if rob_:
+            robot = next(iter(rob_))
+            box = box_
+        if True:
+            print(mov)
+            _img_print(_dict2img({i:1 for i in wall} | {i[0]:4 for i in box} | {i[1]:5 for i in box} | {robot: 3}))
     print(f"A2: {sum(100*i[0][0]+i[0][1] for i in box)}")
-
+    # 1448009 to high
+    
 if __name__ == '__main__':
     main()
