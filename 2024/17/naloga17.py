@@ -34,6 +34,10 @@ class HexComp:
         else:
             return self.register[chr(61+val)]
 
+    def reset(self, reg):
+        self.register.update({k: reg.get(k, 0) for k in self.register})
+        self.pointer = 0
+
     def run(self):
         output = []
         while self.pointer in self.code:  
@@ -99,10 +103,12 @@ def main():
 
     # Part 2
     a = 0
+    hc = HexComp(reg_ | {'A': a}, code_)
     while True:
         if a % 10**5 == 0:
-            print(a)
-        if HexComp(reg_ | {'A': a}, code_).run() == code_:
+            print(a / 10 **6)
+        hc.reset(reg_ | {'A': a})
+        if hc.run() == code_:
             break
         a += 1
     print(f"A2: {a}")

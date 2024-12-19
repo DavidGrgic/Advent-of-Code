@@ -18,12 +18,11 @@ def _dict2img(x):
     return img
 
 def main():
-    filename = 't2.txt'
     # Read
     wall = set()
-    box = set()
+    boxx = set()
     move = None
-    with open(filename, 'r') as file:
+    with open('d.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             if ln == '': # Nov blok podatkov
@@ -32,9 +31,9 @@ def main():
                 for i, v in enumerate(ln):
                     match v:
                         case '@':
-                            robot = (c,i)
+                            robot_ = (c,i)
                         case 'O':
-                            box.add((c,i))
+                            boxx.add((c,i))
                         case '#':
                             wall.add((c,i))
             else:
@@ -45,6 +44,8 @@ def main():
 
     # Part 1
     if True:
+        box = boxx.copy()
+        robot = robot_[:]
         for mov in move:
             dir_ = direct[mov]
             rob_ = plus(robot, dir_)
@@ -67,66 +68,46 @@ def main():
                 else:
                     continue
             robot = rob_
-            if True:
+            if False:
                 print(mov)
                 _img_print(_dict2img({i:1 for i in wall} | {i:2 for i in box} | {robot: 3}))
         print(f"A1: {sum(100*i[0]+i[1] for i in box)}")
 
     # Part 2
-    # Read
-    wall = set()
-    box = set()
-    move = None
-    map_ = {'#': '##', 'O': '[]', '.': '..', '@': '@.'}
-    with open(filename, 'r') as file:
-        for c, ln in enumerate(file):
-            ln = ln.replace('\n', '')
-            if ln == '': # Nov blok podatkov
-                move = ''
-            if move is None:
-                ln = ''.join(map_[i] for i in ln)
-                for i, v in enumerate(ln):
-                    match v:
-                        case '@':
-                            robot = (c,i)
-                        case '[':
-                            box.add(((c,i), plus((c,i), (0,1))))
-                        case '#':
-                            wall.add((c,i))
-            else:
-                move += ln
+    wall = {(i, 2*j + k) for i,j in wall for k in {0,1}}
+    box = {((i, 2*j), (i, 2*j + 1)) for i,j in boxx}
+    robot = (robot_[0], 2*robot_[1])
 
     def push(xx, box):
         xx_ = tuple(plus(i, dir_) for i in xx)
         obstacle = set()
+        box_ = {}
         for x in xx_:
             if x in wall:
-                return None, set()
+                return {}
             elif x in {j for i in box for j in i}:
                 obstacle |= {next(iter({i for i in box if x in i}))}
         if len(obstacle) == 0:
-            return xx_, box
+            box_.update({xx: xx_})
         else:
-            box_ = set()
             for oo in obstacle:
-                oo_, bb_ = push(oo, box - obstacle)
-                if oo_:
-                    box_ |= bb_ | {oo_}
+                bb_ = push(oo, box - obstacle)
+                if bb_:
+                    box_ |= {xx: xx_} | bb_
                 else:
-                    return None, set()
-        return xx_, box_
+                    return {}
+        return box_
 
     for mov in move:
         dir_ = direct[mov]
-        rob_, box_ = push((robot,), box)
-        if rob_:
-            robot = next(iter(rob_))
-            box = box_
-        if True:
+        box_ = push((robot,), box)
+        if box_:
+            robot = box_.pop((robot,))[0]
+            box = (box - set(box_)) | set(box_.values())
+        if False:
             print(mov)
             _img_print(_dict2img({i:1 for i in wall} | {i[0]:4 for i in box} | {i[1]:5 for i in box} | {robot: 3}))
     print(f"A2: {sum(100*i[0][0]+i[0][1] for i in box)}")
-    # 1448009 to high
     
 if __name__ == '__main__':
     main()

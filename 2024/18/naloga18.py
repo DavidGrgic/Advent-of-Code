@@ -27,30 +27,28 @@ def main():
     dim = (6 if len(data) <= 25 else 70) + 1
     plus = lambda a, b: (a[0]+b[0], a[1]+b[1])
     
+    def graf(dat):
+        node = [((i,j), plus((i,j), s)) for i in range(dim) for j in range(dim) for s in {(1,0), (-1,0), (0,1), (0,-1)} if (i,j) not in dat and plus((i,j),s) not in dat and 0 <= plus((i,j),s)[0] < dim and 0 <= plus((i,j),s)[1] < dim]
+        ret = nx.DiGraph()
+        ret.add_edges_from(node)
+        return ret
+    
     # Part 1
-    if True:
-        tim = 12 if len(data) <= 25 else 1024
-        dat = data[:tim]
-        node = [((i,j), plus((i,j), s)) for i in range(dim) for j in range(dim) for s in {(1,0), (-1,0), (0,1), (0,-1)} if (i,j) not in dat and plus((i,j),s) not in dat and plus((i,j),s)[0] < dim and plus((i,j),s)[1] < dim]
-        G = nx.DiGraph()
-        G.add_edges_from(node)
-        p1 = nx.shortest_path(G, (0,0), (dim-1,dim-1))
-        print(f"A1: {len(p1)-1}")
+    tim = 12 if len(data) <= 25 else 1024
+    gra = graf(data[:tim])
+    p1 = nx.shortest_path(gra, (0,0), (dim-1,dim-1))
+    print(f"A1: {len(p1)-1}")
 
     # Part 2
     lim = [tim, len(data)]
     while lim[1]-lim[0] > 1:
-        ti = sum(lim) // 2
-        dat = data[:ti]
-        node = [((i,j), plus((i,j), s)) for i in range(dim) for j in range(dim) for s in {(1,0), (-1,0), (0,1), (0,-1)} if (i,j) not in dat and plus((i,j),s) not in dat and plus((i,j),s)[0] < dim and plus((i,j),s)[1] < dim]
-        G = nx.DiGraph()
-        G.add_edges_from(node)
-        if nx.has_path(G, (0,0), (dim-1,dim-1)):
-            lim[0] = ti
+        tm = sum(lim) // 2
+        gra = graf(data[:tm])
+        if nx.has_path(gra, (0,0), (dim-1,dim-1)):
+            lim[0] = tm
         else:
-            lim[1] = ti
+            lim[1] = tm
     print(f"A2: {','.join(str(i) for i in data[lim[1]-1][::-1])}")
-    # fail  70,31
 
 if __name__ == '__main__':
     main()
