@@ -19,9 +19,9 @@ def _dict2img(x):
 
 class HexComp:
     
-    def __init__(self, reg: dict, code):
+    def __init__(self, register: dict, code):
         self.pointer = 0
-        self.register = reg.copy()
+        self.register = register.copy()
         self.code = code.copy() if isinstance(code, dict) else {i: v for i, v in enumerate(code)}
 
     def literal(self):
@@ -34,11 +34,13 @@ class HexComp:
         else:
             return self.register[chr(61+val)]
 
-    def reset(self, reg):
-        self.register.update({k: reg.get(k, 0) for k in self.register})
+    def reset(self, register):
+        self.register.update({k: register.get(k, 0) for k in self.register})
         self.pointer = 0
 
-    def run(self):
+    def run(self, register = None):
+        if register is not None:
+            self.reset(register)
         output = []
         while self.pointer in self.code:  
             match (opcode := self.code[self.pointer]):
@@ -105,67 +107,36 @@ def main():
     a = 0
     hc = HexComp(reg_, code_)
     
-    unpack = lambda x: sum(v * 8 ** i for i, v in enumerate(x[::-1]))
+    unpack = lambda x: sum(v * 8 ** (i-1) if i > 0 else v for i, v in enumerate(x[::-1]))
 
-
-    # c = 0
-    # a_ = [0]
-    # while True:
-    #     while True:
-    #         hc.reset(reg_ | {'A': (a := unpack(a_))})
-    #         out = hc.run()
-    #         if out == code_[-len(out):]:
-    #             break
-    #         a_[0] += 1
-    #     print(a, a_, c, out)
-    #     if out == code_:
-    #         break
-    #     a_.insert(0,0)
-    #     c += 1
-
-    # c = 0
-    # while True:
-    #     while True:
-    #         hc.reset(reg_ | {'A': a})
-    #         out = hc.run()
-    #         if out == code_[-len(out):]:
-    #             break
-    #         a += 1
-    #     print(a, c, out)
-    #     if out == code_:
-    #         break
-    #     a += 8**c
-    #     c += 1
     
     """ Analyzing """
     if False:
-        nxt_ending = lambda x: {k: v for k,v in res.items() if len(v) == len(x)+1 and v[-len(x):] == x}
+        nxt_ending = lambda x: {k: v for k,v in res.items() if len(v) == len(x)+1 and v[-len(x) if len(x) > 0 else len(v):] == x}
         res = {}
         while True:
-            hc.reset(reg_ | {'A': a})
-            res.update({a: (out := hc.run())})
+            res.update({a: (out := hc.run(reg_ | {'A': a}))})
             if out == code_:
                 break
-            #print(a, out, end = '; ')
             a += 1
-        tmp_ = []
-        for k in range(len(code_)-1):
-            print(tmp := nxt_ending(code_[-(k+1):]))  # For which next left outputs, remaining part match to the code_ ?
-            tmp_.insert(0, (min(tmp) - unpack(tmp_)) // 8**k)
-        print(tmp_)
-
+        a_ = []
+        for k in range(len(code_)):
+            print(tmp := nxt_ending(code_[-k if k > 0 else len(code_):]))  # For which next left outputs, remaining part match to the code_ ?
+            a_.insert(0, (min(tmp) - unpack(a_)) // 8**(k-1) if k > 0 else min(tmp))
+        print(a_)
 
     a_ = []
     while True:
-        a = unpack(a_) + (a_[0] if len(a_) > 0 else 0)*8**len(a_)
+        a_.insert(0, 0)
         while True:
-            hc.reset(reg_ | {'A': a})
-            out = hc.run()
-            if out == code_[-(len(a_)+1):]:
-                if len(a_) > 0:
-                    a_.insert(0, (a - unpack(a_)) // 8**len(a_))
+            for a in range(unpack(a_), unpack([a_[0]+1] + a_[1:])):
+                out = hc.run(reg_ | {'A': a})
+                if out == code_[-(len(a_)):]:
+                    break
+            if out == code_[-(len(a_)):]:
                 break
-            a += 1
+            else:
+                a_[0] += 1
         if out == code_:
             break
 
