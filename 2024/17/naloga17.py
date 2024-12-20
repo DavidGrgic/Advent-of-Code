@@ -69,7 +69,7 @@ def main():
     reg_ = {}
     code_ = []
     c_ = False
-    with open('d.txt', 'r') as file:
+    with open('t1.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             if ln == '': # Nov blok podatkov
@@ -103,14 +103,73 @@ def main():
 
     # Part 2
     a = 0
-    hc = HexComp(reg_ | {'A': a}, code_)
+    hc = HexComp(reg_, code_)
+    
+    unpack = lambda x: sum(v * 8 ** i for i, v in enumerate(x[::-1]))
+
+
+    # c = 0
+    # a_ = [0]
+    # while True:
+    #     while True:
+    #         hc.reset(reg_ | {'A': (a := unpack(a_))})
+    #         out = hc.run()
+    #         if out == code_[-len(out):]:
+    #             break
+    #         a_[0] += 1
+    #     print(a, a_, c, out)
+    #     if out == code_:
+    #         break
+    #     a_.insert(0,0)
+    #     c += 1
+
+    # c = 0
+    # while True:
+    #     while True:
+    #         hc.reset(reg_ | {'A': a})
+    #         out = hc.run()
+    #         if out == code_[-len(out):]:
+    #             break
+    #         a += 1
+    #     print(a, c, out)
+    #     if out == code_:
+    #         break
+    #     a += 8**c
+    #     c += 1
+    
+    """ Analyzing """
+    if False:
+        nxt_ending = lambda x: {k: v for k,v in res.items() if len(v) == len(x)+1 and v[-len(x):] == x}
+        res = {}
+        while True:
+            hc.reset(reg_ | {'A': a})
+            res.update({a: (out := hc.run())})
+            if out == code_:
+                break
+            #print(a, out, end = '; ')
+            a += 1
+        tmp_ = []
+        for k in range(len(code_)-1):
+            print(tmp := nxt_ending(code_[-(k+1):]))  # For which next left outputs, remaining part match to the code_ ?
+            tmp_.insert(0, (min(tmp) - unpack(tmp_)) // 8**k)
+        print(tmp_)
+
+
+    a_ = []
     while True:
-        if a % 10**5 == 0:
-            print(a / 10 **6)
-        hc.reset(reg_ | {'A': a})
-        if hc.run() == code_:
+        a = unpack(a_) + (a_[0] if len(a_) > 0 else 0)*8**len(a_)
+        while True:
+            hc.reset(reg_ | {'A': a})
+            out = hc.run()
+            if out == code_[-(len(a_)+1):]:
+                if len(a_) > 0:
+                    a_.insert(0, (a - unpack(a_)) // 8**len(a_))
+                break
+            a += 1
+        if out == code_:
             break
-        a += 1
+
+
     print(f"A2: {a}")
 
 if __name__ == '__main__':

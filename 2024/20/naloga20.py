@@ -53,6 +53,7 @@ def main():
         print(f"A1: {sum(v for k, v in Counter(p1).items() if k >= save_t)}")
 
     # Part 2
+    """ Part 1 can be better solved below method, replacing 20 picoseconds limit with 2 """
     assert len([p for p in nx.shortest_simple_paths(G0, start, end)]) == 1  # Only one valid path if no cheat?
     cheat = {(i, i+j+1) for i,n in enumerate(pot0) for j,m in enumerate(pot0[i+1:]) if (d:=dist(n,m)) <= j+1-save_t and d <= 20}
     print(f"A2: {len(cheat)}")
