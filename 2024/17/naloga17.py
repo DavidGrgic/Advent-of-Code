@@ -71,7 +71,7 @@ def main():
     reg_ = {}
     code_ = []
     c_ = False
-    with open('t1.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         for c, ln in enumerate(file):
             ln = ln.replace('\n', '')
             if ln == '': # Nov blok podatkov
@@ -111,36 +111,27 @@ def main():
 
     
     """ Analyzing """
-    if False:
-        nxt_ending = lambda x: {k: v for k,v in res.items() if len(v) == len(x)+1 and v[-len(x) if len(x) > 0 else len(v):] == x}
-        res = {}
-        while True:
-            res.update({a: (out := hc.run(reg_ | {'A': a}))})
-            if out == code_:
-                break
-            a += 1
-        a_ = []
-        for k in range(len(code_)):
-            print(tmp := nxt_ending(code_[-k if k > 0 else len(code_):]))  # For which next left outputs, remaining part match to the code_ ?
-            a_.insert(0, (min(tmp) - unpack(a_)) // 8**(k-1) if k > 0 else min(tmp))
-        print(a_)
+    if True:
+        import random
+        import string
+        a = int(''.join(random.choices(string.digits, k=len(code_)-1)).replace('0', '7', 1))
+        a %= 8**len(code_)
+        for n in range(len(code_)-1):
+            print(f"Incrementing by 8^{n}, only outputs between {n-1} and {n-2+3} change (0 as starting position), eg. 3 outputs per time.")
+            for i in range(10):
+                a_ = a+i*8**n
+                print(a_, hc.run(reg_ | {'A': a_}))
 
-    a_ = []
-    while True:
-        a_.insert(0, 0)
+    a = 0
+    for k in range(1, len(code_)+1):
         while True:
-            for a in range(unpack(a_), unpack([a_[0]+1] + a_[1:])):
-                out = hc.run(reg_ | {'A': a})
-                if out == code_[-(len(a_)):]:
-                    break
-            if out == code_[-(len(a_)):]:
+            out = hc.run(reg_ | {'A': a})
+            if out == code_[-k:]:
+                a += 8**k
                 break
             else:
-                a_[0] += 1
-        if out == code_:
-            break
-
-
+                a += 1
+        print(a)
     print(f"A2: {a}")
 
 if __name__ == '__main__':
