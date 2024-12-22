@@ -59,23 +59,24 @@ def main():
         return state, pushes
     
     @cache
-    def fpush(state, sequence, depth):
+    def fpush(state_num, sequence, depth):
+        state = state_num if depth == levels else 'A'  # State at current level always sterts with A, except for numerical kayboard level (depth == levels)
         if depth > 0:
             G, key_ = (Gnum, numkey) if depth == levels else (Gdir, dirkey)
             pushes = 0
             for target in sequence:
                 best_pushes = best_state = None
-                for pot in nx.shortest_simple_paths(G, state[depth], target):
-                    state_  = tuple(target if d == depth else v for d,v in enumerate(state))
+                for pot in nx.shortest_simple_paths(G, state, target):
+                    state_ = target
                     seq = ''.join(move_[plus(key_[pot[i+1]], neg(key_[pot[i]]))] if i < len(pot)-1 else 'A' for i in range(len(pot)))
-                    state_, pushes_ = fpush(state_, seq, depth-1)
+                    state_num_, pushes_ = fpush(state_num, seq, depth-1)
                     if best_pushes is None or pushes_ < best_pushes:
-                        best_state, best_pushes = state_, pushes_
-                state = best_state
+                        best_state, best_pushes, state = state_num_, pushes_, state_
+                state_num = best_state
                 pushes += best_pushes
         else:
             pushes = len(sequence)
-        return state, pushes
+        return state_num, pushes  # state of the numerical kayboard (depth == levels), pustes of the top level (depth == 0)
 
     # Part 1
     if True:
@@ -83,17 +84,16 @@ def main():
         p1 = {}
         for dat in data:
             state = ('A',) * (levels+1)
-            #_, pushes = fpush(state, dat, levels)
             _, pushes = push(state, dat, levels)
             p1.update({dat: pushes})
+            #_, pushes = fpush('A', dat, levels)
         print(f"A1: {sum(len(v[0]) * int(k[:-1]) for k, v in p1.items())}")
 
     # Part 2
     levels = 26
     p2 = {}
     for dat in data:
-        state = ('A',) * (levels+1)
-        _, pushes = fpush(state, dat, levels)
+        _, pushes = fpush('A', dat, levels)
         p2.update({dat: pushes})
     print(f"A2: {sum(v * int(k[:-1]) for k, v in p2.items())}")
 
