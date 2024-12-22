@@ -106,33 +106,34 @@ def main():
     # Part 2
     a = 0
     hc = HexComp(reg_, code_)
-    
-    unpack = lambda x: sum(v * 8 ** (i-1) if i > 0 else v for i, v in enumerate(x[::-1]))
-
-    
-    """ Analyzing """
-    if True:
+    """ Analyzing START """
+    if False:
         import random
         import string
-        a = int(''.join(random.choices(string.digits, k=len(code_)-1)).replace('0', '7', 1))
-        a %= 8**len(code_)
-        for n in range(len(code_)-1):
-            print(f"Incrementing by 8^{n}, only outputs between {n-1} and {n-2+3} change (0 as starting position), eg. 3 outputs per time.")
-            for i in range(10):
+        print("Minimum A value for a 16 digit output is 8^15.")
+        a = int('1'+''.join(random.choices(string.octdigits, k=len(code_)-2)))
+        for n in range(len(code_)-2):
+            print(f"Incrementing by 8^{n}, outputs including and past {n+2} position are fixed (0 as starting position).")
+            for i in range(5):
                 a_ = a+i*8**n
                 print(a_, hc.run(reg_ | {'A': a_}))
+    """ Analyzing STOP """
 
-    a = 0
-    for k in range(1, len(code_)+1):
-        while True:
-            out = hc.run(reg_ | {'A': a})
-            if out == code_[-k:]:
-                a += 8**k
-                break
-            else:
-                a += 1
-        print(a)
+    inc = lambda k: 8**(len(code_)-k-1)
+    a = 8**(len(code_)-1)
+    k = 0; i = inc(k)
+    while True:
+        out = hc.run(reg_ | {'A': a})
+#        print(a, out)
+        assert len(out) == len(code_)
+        if out == code_:
+            break
+        elif out[-(k+1):] == code_[-(k+1):]:
+            k += 1; i = inc(k)
+            print(i)
+        a += i
     print(f"A2: {a}")
+    # 190384625499151  to high
 
 if __name__ == '__main__':
     main()
