@@ -57,6 +57,25 @@ def main():
                         best_state, best_pushes = state_, pushes_
                 state, pushes = best_state, best_pushes
         return state, pushes
+    
+    @cache
+    def fpush(state, sequence, depth):
+        if depth > 0:
+            G, key_ = (Gnum, numkey) if depth == levels else (Gdir, dirkey)
+            pushes = 0
+            for target in sequence:
+                best_pushes = best_state = None
+                for pot in nx.shortest_simple_paths(G, state[depth], target):
+                    state_  = tuple(target if d == depth else v for d,v in enumerate(state))
+                    seq = ''.join(move_[plus(key_[pot[i+1]], neg(key_[pot[i]]))] if i < len(pot)-1 else 'A' for i in range(len(pot)))
+                    state_, pushes_ = fpush(state_, seq, depth-1)
+                    if best_pushes is None or pushes_ < best_pushes:
+                        best_state, best_pushes = state_, pushes_
+                state = best_state
+                pushes += best_pushes
+        else:
+            pushes = len(sequence)
+        return state, pushes
 
     # Part 1
     if True:
@@ -64,7 +83,8 @@ def main():
         p1 = {}
         for dat in data:
             state = ('A',) * (levels+1)
-            state, pushes = push(state, dat, levels)
+            #_, pushes = fpush(state, dat, levels)
+            _, pushes = push(state, dat, levels)
             p1.update({dat: pushes})
         print(f"A1: {sum(len(v[0]) * int(k[:-1]) for k, v in p1.items())}")
 
@@ -73,9 +93,9 @@ def main():
     p2 = {}
     for dat in data:
         state = ('A',) * (levels+1)
-        state, pushes = push(state, dat, levels)
+        _, pushes = fpush(state, dat, levels)
         p2.update({dat: pushes})
-    print(f"A2: {sum(len(v[0]) * int(k[:-1]) for k, v in p2.items())}")
+    print(f"A2: {sum(v * int(k[:-1]) for k, v in p2.items())}")
 
 if __name__ == '__main__':
     main()
