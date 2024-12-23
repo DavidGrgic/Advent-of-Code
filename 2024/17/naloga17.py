@@ -111,29 +111,25 @@ def main():
         import random
         import string
         print("Minimum A value for a 16 digit output is 8^15.")
-        a = int('1'+''.join(random.choices(string.octdigits, k=len(code_)-2)))
+        a = int('0o10'+''.join(random.choices(string.octdigits, k=len(code_)-2)), 8)
         for n in range(len(code_)-2):
             print(f"Incrementing by 8^{n}, outputs including and past {n+2} position are fixed (0 as starting position).")
-            for i in range(5):
+            for i in range(11):
                 a_ = a+i*8**n
                 print(a_, hc.run(reg_ | {'A': a_}))
-    """ Analyzing STOP """
+    """ Analyzing END """
 
-    inc = lambda k: 8**(len(code_)-k-1)
     a = 8**(len(code_)-1)
-    k = 0; i = inc(k)
+    n = len(code_) - 2
     while True:
         out = hc.run(reg_ | {'A': a})
-#        print(a, out)
         assert len(out) == len(code_)
         if out == code_:
             break
-        elif out[-(k+1):] == code_[-(k+1):]:
-            k += 1; i = inc(k)
-            print(i)
-        a += i
+        while out[n:] == code_[n:]:
+            n -= 1
+        a += 8**n
     print(f"A2: {a}")
-    # 190384625499151  to high
 
 if __name__ == '__main__':
     main()
