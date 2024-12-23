@@ -26,11 +26,10 @@ def main():
             link += [tuple(sorted(ln.split('-')))]
     comp = {j for i in link for j in i}
     conn = {k: tuple(i for i in comp if tuple(sorted({i,k})) in link) for k in comp}
-#    conn = {k: {i for i in comp if tuple(sorted({i,k})) in link} for k in comp}
     santa = {i for i in comp if i[0] == 't'}
 
     # Part 1
-    if False:
+    if True:
         conn_ = {k: v for k, v in conn.items() if k in santa}
         tris = set()
         for s, v in conn_.items():
