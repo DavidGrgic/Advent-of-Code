@@ -150,14 +150,14 @@ def main():
                 # TODO
                 break
         else:
-            while not (root(logic, out) == root(make_up(pos), out) if fast and pos < len(output)-2 else check(logic, pos)):
+            while not (root(logic, out) == (make_up_pos := root(make_up(pos), out)) if fast and pos < len(output)-2 else check(logic, pos)):  # fast option is not OK for last bit, which is relevant only for overflow, therefore for last bit, we always use slow option
                 if pos == 38:
                     break
                 for ss, swp in enumerate(combinations(set(logic.keys()) - swaped, 2)):
                     if ss % 1000 == 0: print(f"pos: {pos}\tswp: {ss}/{math.comb(len(set(logic.keys()) - swaped), 2)}")
                     logic_ = logic.copy()
                     logic_[swp[0]], logic_[swp[1]] = logic_[swp[1]], logic_[swp[0]]
-                    if (root(logic_, out, 99) == root(make_up(pos), out) if fast and pos < len(output)-2 else check(logic_, pos)):
+                    if (root(logic_, out, 99) == make_up_pos if fast and pos < len(output)-2 else check(logic_, pos)):
                         logic = logic_
                         swaped |= set(swp)
                         break
