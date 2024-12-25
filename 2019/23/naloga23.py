@@ -56,7 +56,7 @@ class IntCode():
                         status = True
                         break
                 case 4:
-                    self.output_.append(self.code_[address(1)])
+                    self.output_.append(value(1))
                     self.pointer += 2
                 case 5:
                     if value(1) != 0:
@@ -89,65 +89,6 @@ class IntCode():
 
     def code(self):
         return list(i[1] for i in sorted(self.code_.items()))
-
-def intcode(dat, _input = [], pos = 0, base = 0, no_out = None):
-    _output = []
-    _consumed = []
-    address = lambda p, m: p+base if m == 2 else p
-    value = lambda p, m: dat.get(address(dat[p],m), 0) if m in {0,2} else dat.get(p, 0)
-    while True:
-        ins = str(dat[pos])
-        ins = (5-len(ins))*'0' + ins
-        mod = [int(i) for i in ins[-3::-1]]
-        ins = int(ins[-2:])
-        if ins == 99:
-            stop = True
-            break
-        if ins == 1:
-            assert mod[2] in {0,2}
-            dat[address(dat[pos+3], mod[2])] = value(pos+1, mod[0]) + value(pos+2, mod[1])
-            pos += 4
-        elif ins == 2:
-            assert mod[2] in {0,2}
-            dat[address(dat[pos+3], mod[2])] = value(pos+1, mod[0]) * value(pos+2, mod[1])
-            pos += 4
-        elif ins == 3:
-            assert mod[0] in {0,2}
-            assert len(_input) > 0
-            dat[address(dat[pos+1], mod[0])] = _input[0]
-            _consumed += [_input[0]]
-            _input = _input[1:]
-            pos += 2
-        elif ins == 4:
-            _output.append(value(pos+1, mod[0]))
-            pos += 2
-            if no_out is not None and len(_output) >= no_out:
-                stop = False
-                break
-        elif ins == 5:
-            if value(pos+1, mod[0]) != 0:
-                pos = value(pos+2, mod[1])
-            else:
-                pos += 3
-        elif ins == 6:
-            if value(pos+1, mod[0]) == 0:
-                pos = value(pos+2, mod[1])
-            else:
-                pos += 3
-        elif ins == 7:
-            assert mod[2] in {0,2}
-            dat[address(dat[pos+3], mod[2])] = 1 if value(pos+1, mod[0]) < value(pos+2, mod[1]) else 0
-            pos += 4
-        elif ins == 8:
-            assert mod[2] in {0,2}
-            dat[address(dat[pos+3], mod[2])] = 1 if value(pos+1, mod[0]) == value(pos+2, mod[1]) else 0
-            pos += 4
-        elif ins == 9:
-            base += value(pos+1, mod[0])
-            pos += 2
-        else:
-            raise AssertionError
-    return dat, _output, -1 if stop else pos, base, _consumed
 
 def read(filename):
     with open(filename, 'r') as file:
@@ -196,38 +137,50 @@ def day09():
     assert t1.output() == [1219070632396864]
     t2 = IntCode([104,1125899906842624,99]); t2.run()
     assert t2.output() == [1125899906842624]
+    data = read(r'.\..\09\data.txt')
+    p1 = IntCode(data); p1.run(1)
+    assert p1.output() == [3598076521]
+    p2 = IntCode(data); p2.run(2)
+    assert p2.output() == [90722]
 
 def main():
     data = read('d.txt')
+    
+    def cycle(queue):
+        queue_ = {}
+        for k, ic in network.items():
+            ic.run(queue.get(k, -1))
+            out = ic.output()[out_idx[k]:]
+            out_idx[k] += len(out)
+            for blk in zip(*(iter(out),) * 3):
+                queue_.update({blk[0]: queue_.get(blk[0], []) + list(blk[1:])})
+        return queue_
 
     # Part 1
-    if True:
-        vhod = {k: [k, -1] for k in range(50)}
-        izhod = {}
-        no = {}
-        for k, i in vhod.items():
-            j = 0
-            while True:
-                try:
-                    _dat, out, _pos, _bas, _con = intcode(copy.copy(data), i, no_out = j)
-                    izhod.update({k: out})
-                    j += 1
-                except:
-                    no.update({k: j-1})
-                    break
-        for i in (lambda x = [j for i in izhod.values() for j in i]: [x[i:i+3] for i in range(0, len(x), 3)])():
-            try:
-                _dat, out, _pos, _bas, _con = intcode(copy.copy(data), i , no_out = 1)
-                print('OK')
-            except:
-                print('Fail')
-        print(f"A1: {0}")
+    network = {k: IntCode(data) for k in range(50)}
+    for k, ic in network.items():
+        ic.run(k)
+    queue = {}
+    out_idx = {i:0 for i in network}
+    while 255 not in queue:
+        queue = cycle(queue)
+    print(f"A1: {queue[255][1]}")
 
     # Part 2
-    print(f"A2: {0}")
+    nat = queue[255][-2:]
+    while True:
+        del queue[255]
+        assert len(queue) == 0
+        queue.update({0: queue.get(0, []) + nat})
+        while 255 not in queue:
+            queue = cycle(queue)
+        if nat[1] == (nat := queue[255][-2:])[1]:
+            break
+    print(f"A2: {nat[1]}")
 
 if __name__ == '__main__':
-    day02()
-    day05()
-    day09()
+    if False:
+        day02()
+        day05()
+        day09()
     main()
