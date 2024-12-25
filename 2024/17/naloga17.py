@@ -17,7 +17,7 @@ def _dict2img(x):
     img[tuple(tuple(int(i[j]-offset[j]) for i in x.keys()) for j in range(2))] = list(x.values())
     return img
 
-class HexComp:
+class OctComp:
     
     def __init__(self, register: dict, code):
         self.pointer = 0
@@ -85,27 +85,27 @@ def main():
 
     # Part 1
     if True:
-        comp = HexComp({'A': 0, 'B': 0, 'C': 9}, [2,6])
+        comp = OctComp({'A': 0, 'B': 0, 'C': 9}, [2,6])
         comp.run()
         assert comp.register['B'] == 1
-        comp = HexComp({'A': 10, 'B': 0, 'C': 0}, [5,0,5,1,5,4])
+        comp = OctComp({'A': 10, 'B': 0, 'C': 0}, [5,0,5,1,5,4])
         assert comp.run() == [0, 1, 2]
-        comp = HexComp({'A': 2024, 'B': 0, 'C': 0}, [0,1,5,4,3,0])
+        comp = OctComp({'A': 2024, 'B': 0, 'C': 0}, [0,1,5,4,3,0])
         assert comp.run() == [4, 2, 5, 6, 7, 7, 7, 7, 3, 1, 0]
         assert comp.register['A'] == 0
-        comp = HexComp({'A': 0, 'B': 29, 'C': 0}, [1,7])
+        comp = OctComp({'A': 0, 'B': 29, 'C': 0}, [1,7])
         comp.run()
         assert comp.register['B'] == 26
-        comp = HexComp({'A': 0, 'B': 2024, 'C': 43690}, [4,0])
+        comp = OctComp({'A': 0, 'B': 2024, 'C': 43690}, [4,0])
         comp.run()
         assert comp.register['B'] == 44354
-        comp = HexComp(reg_, code_)
+        comp = OctComp(reg_, code_)
         p1 = comp.run()
         print(f"A1: {','.join(str(i) for i in p1)}")
 
     # Part 2
     a = 0
-    hc = HexComp(reg_, code_)
+    oct_comp = OctComp(reg_, code_)
     """ Analyzing START """
     if False:
         import random
@@ -116,13 +116,13 @@ def main():
             print(f"Incrementing by 8^{n}, outputs including and past {n+2} position are fixed (0 as starting position).")
             for i in range(11):
                 a_ = a+i*8**n
-                print(a_, hc.run(reg_ | {'A': a_}))
+                print(a_, oct_comp.run(reg_ | {'A': a_}))
     """ Analyzing END """
 
     a = 8**(len(code_)-1)
     n = len(code_) - 2
     while True:
-        out = hc.run(reg_ | {'A': a})
+        out = oct_comp.run(reg_ | {'A': a})
         assert len(out) == len(code_)
         if out == code_:
             break
