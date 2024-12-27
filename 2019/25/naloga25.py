@@ -218,10 +218,11 @@ def main():
         for inv in inventory:
             instruction = f"drop {inv}"
             comp.run([ord(i) for i in instruction] + [10] if isinstance(instruction, str) else instruction)
+        next_dir = next(iter(d for d, r in room[current_room].door.items() if room[r].password))
         num_item = 1
         while play and num_item <= len(inventory):
             for inv in [i for i in combinations(inventory, num_item) if not any(len(h - set(i))==0 for h in heavy)]:
-                instruction = chr(10).join(f"take {i}" for i in inv) + f"{chr(10)}north"
+                instruction = chr(10).join(f"take {i}" for i in inv) + f"{chr(10)}{next_dir}"
                 if not comp.run([ord(i) for i in instruction] + [10] if isinstance(instruction, str) else instruction):
                     play = False
                     break
