@@ -27,12 +27,15 @@ class IntCode():
     def __repr__(self):
         return f"pointer={self.pointer}: base={self.base}\n{','.join(str(i) for i in self.code())}"
     
-    def run(self, input_ = None):
+    def run(self, input_ = None, steps = None):
         address = lambda offset: self.code_[self.pointer+offset] + (self.base if mode[offset-1] == 2 else 0)
         value = lambda offset: self.code_.get(self.pointer+offset, 0) if mode[offset-1] == 1 else self.code_.get(address(offset), 0)
         if input_ is not None:
             self.input_add(input_)
         while True:
+            if steps is not None and (steps :=steps - 1) < 0:
+                status = False
+                break
             instruction = self.code_[self.pointer]
             mode = [int(i) for i in str(instruction // 100).rjust(3,'0')[::-1]]
             match instruction % 100:
@@ -79,7 +82,7 @@ class IntCode():
                     self.pointer += 2
                 case _:
                     raise RuntimeError('Something went wrong.')
-        return status  # None: Program terminated, True: Waiting for input
+        return status  # None: Program terminated, False: max number of steps reached, True: Waiting for input
 
     def input_add(self, input_):
         self.input_.extend([int(i) for i in input_] if hasattr(input_, '__iter__') else [int(input_)])
@@ -135,7 +138,7 @@ def main():
         return inv
         
     # Part 1
-    danger = {'infinite loop'}  # Collection of dangerous invertory ('infinite loop' is goten via debuging)
+    danger = set()  # Collection of dangerous invertory
     light = []; heavy = []
     direction = ({'north', 'south'}, {'east', 'west'})
     play = explore = True
@@ -145,7 +148,7 @@ def main():
         next_dir = None
         take = set()
         instruction = None
-        while comp.run([ord(i) for i in instruction] + [10] if isinstance(instruction, str) else instruction):
+        while comp.run([ord(i) for i in instruction] + [10] if isinstance(instruction, str) else instruction, 10**5):
             #print(''.join(chr(i) for i in comp.output(False)))
             output = (''.join(chr(i) for i in comp.output(False))).split('\n\nCommand?')[-2]
             if len(take) > 0:
