@@ -37,14 +37,18 @@ def main():
         for nanobot in candidates:
             done.add(nanobot)
             if intersect is None:
-                included = {intersect := nanobot}
+                included = set()
+                sub_intersect = nanobot
             else:
-    #            xyz, xyz_ = sorted((intersect, nano), key=lambda v: distance(v[0]))
                 rang = Fraction(intersect[1] + nanobot[1] - distance(intersect[0], nanobot[0]), 2)
                 if rang < 0:
                     continue
-                sub_intersect = 0
-            ret.add(explore(candidates - done, sub_intersect, included | {nanobot}, ))
+                rr = Fraction(intersect[1], intersect[1] + nanobot[1])
+                sub_intersect = tuple(i+rr*(j-i) for i,j in zip(intersect[0], nanobot[0])), rang
+            ret_ = explore(candidates - done, sub_intersect, included | {nanobot})
+            ret.add(ret_)
+#        if len(ret) == 0:
+#            return -len(included), max(0, distance(intersect[0]) - intersect[-1])
         return sorted(ret)[0]
 
     # Part 1
