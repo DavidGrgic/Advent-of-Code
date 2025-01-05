@@ -4,7 +4,6 @@
 """
 import math, copy, os, sys
 import pandas as pd, numpy as np
-from fractions import Fraction
 #from collections import Counter
 #from fractions import Fraction
 #from itertools import permutations, combinations, product
@@ -21,7 +20,7 @@ def _dict2img(x):
 def main():
     # Read
     data = []
-    with open('t2.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         for c, ln in enumerate(file):
             da = ln.replace('\n', '').split('>, r=')
             data.append((tuple(int(i) for i in da[0][5:].split(',')), int(da[1])))
@@ -30,26 +29,28 @@ def main():
     distance = lambda a, b = (0,0,0): sum(abs(i-j) for i,j in zip(a,b))
 
     def explore(candidates, intersect = None, included = None):
-        if len(candidates) == 0:
-            return -len(included), max(0, distance(intersect[0]) - intersect[-1])
-        ret = set()
+        # ret vrne negativno število nanobotov, ki pokrivajo določen presek ter 
+        # minimalno razdaljo od izhodišča, ki je v bistvu ena od mej prve osi (0),
+        # odvisno, na kateri strani se nahajamo, oziroma 0, če je presek ravno čez izhodišče
+        ret = [] if intersect is None else \
+            [(included,
+              0 if intersect[0][0] <= 0 and intersect[0][1] >= 0 
+              else (intersect[0][0] if intersect[0][0] > 0 else -intersect[0][1]))]
         done = set()
-        for nanobot in candidates:
+        while (todo := candidates - done):
+            nanobot = next(iter(todo))
             done.add(nanobot)
             if intersect is None:
                 included = set()
                 sub_intersect = nanobot
             else:
-                rang = Fraction(intersect[1] + nanobot[1] - distance(intersect[0], nanobot[0]), 2)
-                if rang < 0:
+                sub_intersect = tuple((max(v[0], w[0]), min(v[1], w[1])) for v, w in zip(intersect, nanobot))
+                if any(v[0] > v[1] for v in sub_intersect):
                     continue
-                rr = Fraction(intersect[1], intersect[1] + nanobot[1])
-                sub_intersect = tuple(i+rr*(j-i) for i,j in zip(intersect[0], nanobot[0])), rang
             ret_ = explore(candidates - done, sub_intersect, included | {nanobot})
-            ret.add(ret_)
-#        if len(ret) == 0:
-#            return -len(included), max(0, distance(intersect[0]) - intersect[-1])
-        return sorted(ret)[0]
+            done |= ret_[0]
+            ret.append(ret_)
+        return sorted(ret, key=lambda x: (-len(x[0]), x[1]))[0]
 
     # Part 1
     if True:
@@ -58,8 +59,13 @@ def main():
         print(f"A1: {len(p1)}")
 
     # Part 2
-    p2 = explore(data)
-    print(f"A2: {0}")
+    # Vsak nanobot je (v prostoru, kjer se merijo Manhaten razdalje) omejen z 'diamantom' s 8 trikotnimi stranicami, od katerih so paroma paralelene
+    # Teh 8 stranic predstavlja 4 osi (a, b, c in d) kot:
+    # a = x+y+z, b = x+y-z, c = x-y+z in d = x-y-z
+    # Območja (rangi) posameznih nanobotov so v teh kordinatah opiasni kot ((a_min, a_max), (b_min, b_max), (c_min, c_max), (d_min, d_max))
+    dat = {((x+y+z-r, x+y+z+r), (x-y+z-r, x-y+z+r), (x+y-z-r, x+y-z+r), (x-y-z-r, x-y-z+r)) for (x,y,z),r in data}
+    p2 = explore(dat)
+    print(f"A2: {p2[-1]}")
 
 if __name__ == '__main__':
     main()
