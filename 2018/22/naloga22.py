@@ -6,7 +6,7 @@ import math, copy, os, sys
 import pandas as pd, numpy as np
 #from collections import Counter
 #from fractions import Fraction
-#from itertools import permutations, combinations, product
+from itertools import permutations, combinations, product
 #from functools import cache   # @cache
 import networkx as nx   # G = nx.DiGraph(); G.add_edges_from([('Start', 'B'), ('B', 'C'), ('Start', 'C'), ('C', 'End')]); nx.shortest_path(G, 'Start', 'End'); G.add_weighted_edges_from([('Start', 'B', 1.7), ('B', 'C', 0.6), ('Start', 'C', 2.9), ('C', 'End', 0.2)]); nx.shortest_path(G, 'Start', 'End', 'weight')
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
@@ -48,7 +48,7 @@ def main():
     # Part 2
     tool = {'t': {0, 2}, 'c': {0, 1}, 'n': {1, 2}}
     rob = [(xy+(k,), plus(xy,d)+(k,), 1) for k, v in tool.items() for xy, v_ in region.items() for d in {(1,0), (0,1)} if v_ in v and region.get(plus(xy,d)) in v]
-    rob += [(xy+(k,), xy+(k_,), 7) for k, k_ in {('t','c'), ('t','n'), ('c','n')} for xy, v in region.items() if v in tool[k] and v in  tool[k_]]
+    rob += [(xy+(k,), xy+(k_,), 7) for k, k_ in combinations(tool, 2) for xy, v in region.items() if v in tool[k] and v in  tool[k_]]
     G = nx.Graph()
     G.add_weighted_edges_from(rob)
     pot = nx.shortest_path(G, (0,0,'t'), target + ('t',), 'weight')
