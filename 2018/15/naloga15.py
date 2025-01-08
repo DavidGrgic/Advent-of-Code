@@ -38,10 +38,7 @@ def main():
 
     plus = lambda a, b: (a[0]+b[0], a[1]+b[1])
 
-    # Part 1
-    if True:
-        fld = data.copy()
-        uni = unit.copy()
+    def war(fld, uni, attack = 3, show = False):
         rund = 0; end = False
         while not end:
             for u, xy in enumerate(todo := sorted(ij for ij,v in fld.items() if v != 0)):
@@ -75,7 +72,7 @@ def main():
                 neighbour = sorted(plus(x_y,d) for d in {(-1,0), (0,-1), (0,1), (1,0)} if fld.get(x_y,0) * fld.get(plus(x_y,d),0) < 0)
                 if neighbour:
                     target = sorted((uni[fld[xy_]], xy_) for xy_ in neighbour)[0]
-                    uni[fld[target[-1]]] = (hit := max(0, uni[fld[target[-1]]] - 3))
+                    uni[fld[target[-1]]] = (hit := max(0, uni[fld[target[-1]]] - (attack if fld[x_y] > 0 else 3)))
                     if not hit:
                         fld[target[-1]] = 0
                         if not all(sum(uni[v] for ij,v in fld.items() if v != 0 and v*s >= 0) > 0 for s in {1,-1}):
@@ -84,13 +81,26 @@ def main():
                                 break
             else:
                 rund += 1
-            if True:
+            if show:
                 print(f"After round {rund}", end='')
                 _img_print(_dict2img({k: (1 if v > 0 else -1) if v != 0 else 0 for k, v in fld.items()}))
+        return uni, rund
+
+    # Part 1
+    if True:
+        uni, rund = war(data.copy(), unit.copy())
         print(f"A1: {rund * sum(uni.values())}")
 
     # Part 2
-    print(f"A2: {0}")
+    attk = {}
+    while attk.get('M', (72,))[0] - attk.get('m', (0,))[0] > 1:
+        atk = ((attk['m'][0] + attk['M'][0]) // 2 if attk.get('M') else 2*attk['m'][0]) if attk.get('m') else 3
+        uni, rund = war(data.copy(), unit.copy(), atk)
+        if all(win := [v for k, v in uni.items() if k > 0]):
+            attk.update({'M': (atk, rund, win)})
+        else:
+            attk.update({'m': (atk, rund, win)})
+    print(f"A2: {attk['M'][1] * sum(attk['M'][2])}")
 
 if __name__ == '__main__':
     main()
