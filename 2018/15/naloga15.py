@@ -48,15 +48,22 @@ def main():
                 if fld[xy] == 0:  # Unit already killed, skip it
                     continue
                 # Move
-                neighbour = sorted(plus(xy,d) for d in {(-1,0), (0,-1), (0,1), (1,0)} if fld.get(xy,0) * fld.get(plus(xy,d),0) < 0)
-                if not neighbour:
+                start = {plus(xy,d) for d in {(-1,0), (0,-1), (0,1), (1,0)} if fld.get(plus(xy,d), 72) == 0}
+                neighbour = sorted(plus(xy,d) for d in {(-1,0), (0,-1), (0,1), (1,0)} if fld.get(xy, 0) * fld.get(plus(xy,d), 0) < 0)
+                if start and not neighbour:
                     graf = nx.Graph()
-                    graf.add_edges_from([(xy_, plus(xy_,d)) for xy_, v in fld.items() for d in {(1,0), (0,1)} if (v == 0 or xy_ == xy) and (fld.get(plus(xy_,d), 72) == 0 or plus(xy_,d) == xy)])
+                    graf.add_edges_from([(xy_, plus(xy_,d)) for xy_, v in fld.items() for d in {(1,0), (0,1)} if v == 0 and fld.get(plus(xy_,d), 72) == 0])
                     reach = {}
                     for xy_enemy in {xy_ for xy_, v in fld.items() if fld.get(xy,0) * v < 0}:
                         for xy_range in {plus(xy_enemy, d) for d in {(-1,0), (0,-1), (0,1), (1,0)} if fld.get(plus(xy_enemy, d), 72) == 0}:
-                            if graf.has_node(xy) and graf.has_node(xy_range) and nx.has_path(graf, xy, xy_range):
-                                reach.update({xy_range: sorted(p for p in nx.all_shortest_paths(graf, xy, xy_range))[0]})
+                            r = []
+                            for xy_start in start:
+                                if xy_start == xy_range:
+                                    r.append([xy, xy_range])
+                                elif graf.has_node(xy_start) and graf.has_node(xy_range) and nx.has_path(graf, xy_start, xy_range):
+                                    r.append([xy] + nx.shortest_path(graf, xy_start, xy_range))
+                            if r:
+                                reach.update({xy_range: sorted(r, key=lambda x: (len(x),x))[0]})
                     if not reach:
                         continue
                     move = sorted(reach.items(), key=lambda item: (len(item[1]), item[0]))[0][-1]
