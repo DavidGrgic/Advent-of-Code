@@ -20,7 +20,7 @@ def _dict2img(x):
 def main():
     # Read
     data = {}  # 0: empty space, -G: ID of tht goblin, +E: ID of the elf
-    with open('t2.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         for i, ln in enumerate(file):
             for j, v in enumerate(ln.replace('\n', '')):
                 match v:
@@ -44,7 +44,7 @@ def main():
         uni = unit.copy()
         rund = 0; end = False
         while not end:
-            for xy in sorted(ij for ij,v in fld.items() if v != 0):
+            for u, xy in enumerate(todo := sorted(ij for ij,v in fld.items() if v != 0)):
                 if fld[xy] == 0:  # Unit already killed, skip it
                     continue
                 # Move
@@ -71,10 +71,12 @@ def main():
                     uni[fld[target[-1]]] = (hit := max(0, uni[fld[target[-1]]] - 3))
                     if not hit:
                         fld[target[-1]] = 0
-                    if not all(sum(uni[v] for ij,v in fld.items() if v != 0 and v*s >= 0) > 0 for s in {1,-1}):
-                        end = True
-                        break
-            rund += 1
+                        if not all(sum(uni[v] for ij,v in fld.items() if v != 0 and v*s >= 0) > 0 for s in {1,-1}):
+                            end = True
+                            if u+1 != len(todo):
+                                break
+            else:
+                rund += 1
             if True:
                 print(f"After round {rund}", end='')
                 _img_print(_dict2img({k: (1 if v > 0 else -1) if v != 0 else 0 for k, v in fld.items()}))
