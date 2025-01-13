@@ -30,15 +30,23 @@ class Comp:
             self.code = self.code[1:]
         self.code = {i: v for i, v in enumerate(self.code)}
 
-    def run(self, pointer: int = 0):
-        while pointer in self.code:
+    def run(self, debug: tuple[int] = None):
+        if debug:
+            if not hasattr(debug, '__iter__'):
+                debug = (0, debug)
+        pointer = 0
+        nn = 0
+        while pointer in self.code and (not debug or nn <= debug[-1]):
             self.register[self.bound] = pointer
             step = self.code[pointer]
-            #print(pointer, self.register, step, end=' ')
+            if debug and debug[0] <= nn:
+                print(f"{nn}: {pointer}", self.register, step, end=' ')
             getattr(self, step[0])(*step[1:])
-            #print(self.register)
+            if debug and debug[0] <= nn:
+                print(self.register)
             pointer = self.register[self.bound]
             pointer += 1
+            nn += 1
 
     def addr(self, a, b, c):
         self.register[c] = self.register[a] + self.register[b]
@@ -97,18 +105,37 @@ def main():
             data.append(tuple(v if i==0 else int(v) for i, v in enumerate(ln.replace('\n', '').split())))
 
     # Part 1
-    if False:
+    if True:
         comp = Comp(data.copy())
         comp.run()
         print(f"A1: {comp.register[0]}")
 
     # Part 2
+    """
+    Za primer pod part 1 (torej ko se začne z registorm 0 z redenostjo 0), če poženeš program z ispisom vrednsoti registrov:
+        comp = Comp(data.copy()); comp.run((0,1000))
+    Je po nekaj korakih (21 korak) očitno, da obstaja loop ko pointer teče od 3 do 11. Poleg tega ima zadnji register neko vrednost, v konkretnem primeru 931, predzadnji register se v vsakem loopu poveča za 1
+    Če si izpišemo malo bolj poznejši del, ko se predzadnji register približa vrednosti zadnjega registra:
+        comp = Comp(data.copy()); comp.run((7440,8000))
+    V koraku 7449 doseže predzadnji register vrednost zadnjega registra in v 7456 koraku se v register 0 zapiše vrednost 1, predzadnji register se postavi na 1 in loop se začne ponovno
+    Naslednjič doseže predzadnji register vrednost 931 v koraku 14901, vendar se po tem vresnost registra 0 ne poveča:
+        comp = Comp(data.copy()); comp.run((14900,15000))
+    Naslednjič, ko se register 0 spremeni je okoli koraka 45784, ko se poveča za 7, na vrednost 8:
+        comp = Comp(data.copy()); comp.run((45780, 45800))
+    Ter ponovno v okolici koraka 134536, ko se poveča za 19, na 27:
+        comp = Comp(data.copy()); comp.run((134520, 134600))
+    Ter ponovno v okolici koraka 357856, ko se poveča za 49, na 76:
+        comp = Comp(data.copy()); comp.run((357850, 357900))
+    itd.
+    Register 0 se torej povečuje: 1, 7, 19, 49,... kar so ravno celoštevilski deljitelji števila 931, vsota vseh deljitevlejv pa je na koncu 1140, kar je rezultat prvega dela naloge.
+    Če zavrtimo nekaj korakov drugega dela naloge:
+        comp = Comp(data.copy()); comp.register[0] = 1; comp.run((0,1000))
+    Vidimo, da se po uvodni inicalizaciji postavi zadnji register na 10551331, od koraka 21 naprej pa se ponovno začne enak loop kot za prvi del naloge.
+    Poiščemo torej vse celoštevilska seljitelje števila 10551331 in njihov seštevek je rezultat drugega dela naloge.
+    """
     divisors = lambda n: set(chain.from_iterable((i,n//i) for i in range(1, math.isqrt(n)+1) if n%i == 0))
-
-    comp = Comp(data.copy())
-    comp.register[0] = 1
-    comp.run()
-    print(f"A2: {comp.register[0]}")
+    p2 = divisors(10551331)
+    print(f"A2: {sum(p2)}")
 
 if __name__ == '__main__':
     main()
