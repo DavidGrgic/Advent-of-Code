@@ -61,14 +61,14 @@ def main():
                     elif dat(i,j) == '>':
                         cart.update({len(cart): [(i,j), (0,1), 0]})
                 case '/':
-                    if dat(i-1,j) in {'|', '+', '<', '>', 'v', '^'} and dat(i,j-1) in {'-', '+', '<', '>', 'v', '^'}:
+                    if dat(i-1,j) in {'|', '+', 'v', '^'} and dat(i,j-1) in {'-', '+', '<', '>'}:
                         add((i-1,j))
                         add((i,j-1))
                     else:
                         add((i+1,j))
                         add((i,j+1))
                 case '\\':
-                    if dat(i-1,j) in {'|', '+', '<', '>', 'v', '^'} and dat(i,j+1) in {'-', '+', '<', '>', 'v', '^'}:
+                    if dat(i-1,j) in {'|', '+', 'v', '^'} and dat(i,j+1) in {'-', '+', '<', '>'}:
                         add((i-1,j))
                         add((i,j+1))
                     else:
