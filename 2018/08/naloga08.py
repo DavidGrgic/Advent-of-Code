@@ -22,41 +22,45 @@ def plot(data, mapper: dict = {0: '.', 1: '#'}, default: dict = {set: 1, dict: 0
 
 def main():
     # Read
-    players = 404; marbles = 71852
-    #players = 10; marbles = 1618
-    #players = 9; marbles = 25
+    data = []
+    with open('d.txt', 'r') as file:
+        for c, ln in enumerate(file):
+            data.extend(int(i) for i in ln.replace('\n', '').split())
 
-    def game(players, marbles):
-        player = {}
-        seq = {0: [0,0]}
-        current = 0
-        for marble in range(1, marbles+1):
-            if marble % 23 == 0:
-                for _ in range(8):
-                    current, nxt = seq[current_ := current]
-                seq[current][1] = nxt
-                seq[nxt][0] = current
-                current = nxt
-                del seq[current_]
-                ply = ((marble - 1) % players) + 1
-                player.update({ply: player.get(ply, set()) | {marble, current_}})
-            else:
-                _, current = seq[current]
-                _, nxt = seq[current]
-                seq[current][1] = marble
-                seq[nxt][0] = marble
-                seq.update({marble: [current, nxt]})
-                current = marble
-        return {k: sum(v) for k, v in player.items()}
+    deepsum = lambda x: sum(sum(i) if isinstance(i, tuple) else deepsum(i) for i in x)
+
+    def unpack(niz: list[int]):
+        nodes = niz[0]
+        metas = niz[1]
+        niz_ = niz[2:]
+        tree = []
+        for _ in range(nodes):
+            tree_, niz_ = unpack(niz_)
+            tree.append(tree_)
+        tree.append(tuple(niz_[:metas]))
+        niz_ = niz_[metas:]
+        return tree, niz_
 
     # Part 1
-    if True:
-        p1 = game(players, marbles)
-        print(f"A1: {max(p1.values())}")
+    p1, _ = unpack(data)
+    print(f"A1: {deepsum(p1)}")
 
     # Part 2
-    p2 = game(players, 100*marbles)
-    print(f"A2: {max(p2.values())}")
+    def checksum(tree):
+        node = {i+1: v for i, v in enumerate([i for i in tree if isinstance(i, list)])}
+        idx_dat = [i for i in tree if isinstance(i, tuple)][0]
+        ret = 0
+        if len(node) > 0:
+            for i in idx_dat:
+                tree_ = node.get(i)
+                if tree_ is not None:
+                    ret += checksum(tree_)
+        else:
+            ret = sum(idx_dat)
+        return ret
+
+    p2 = checksum(p1)
+    print(f"A2: {p2}")
 
 if __name__ == '__main__':
     main()
