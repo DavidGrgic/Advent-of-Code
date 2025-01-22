@@ -61,14 +61,17 @@ def main():
         ret = {k: 1 for k in node} | {k: i+2 for i, k in enumerate(position)}
         plot(ret, {0: '#', 1: '.', 2: 'G', 3: '_'})
     
-    # Frst move empty space close to goal data.
-    edge = [(yx, yx_) for yx in node for d in {(1,0), (0,1)} if (yx_ := plus(yx, d)) in node and goal_ not in {yx, yx_}]
-    G = nx.Graph()
-    G.add_edges_from(edge)
-    path = []
-    for nn in neighbour(goal_):
-        path += [nx.shortest_path(G, empty_, nn)]
-    path = {l-1: {(goal_, i[-1]) for i in path if len(i) == l} for l in {len(i) for i in path}}  # key is time it took to tkae empty at that position, value is tuple of goal and empty node, eg. state
+    if True:  # Frst move empty space close to goal data.
+        edge = [(yx, yx_) for yx in node for d in {(1,0), (0,1)} if (yx_ := plus(yx, d)) in node and goal_ not in {yx, yx_}]
+        G = nx.Graph()
+        G.add_edges_from(edge)
+        path = []
+        for nn in neighbour(goal_):
+            if nx.has_path(G, empty_, nn):
+                path += [nx.shortest_path(G, empty_, nn)]
+        path = {l-1: {(goal_, i[-1]) for i in path if len(i) == l} for l in {len(i) for i in path}}  # key is time it took to tkae empty at that position, value is tuple of goal and empty node, eg. state
+    else:  # Or use BFS below only
+        path = {0: {(goal_, empty_)}}
     
     # Second, use Breadth First Search (BFS) to move goal data to access node. State is tuple of goal and empty node
     goal_treashold = sum(max(i[j] for i in node) for j in range(2))   # To speed up BFS, keep only states, where goal has moved more or equal away from access node. Value has to be 0 or greater
