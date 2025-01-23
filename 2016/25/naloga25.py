@@ -71,17 +71,28 @@ def main():
             data.append((ins,) + tuple(int(i) if i.replace('-','').isnumeric() else i for i in arg))
 
     # Part 1
-    n = 0
-    while True:
+    assert 'tgl' not in {i for i,*_ in data}, "Implementation assume state depends on register values only and not on code itself ('tgl' instruction modify code)"
+    n = -1
+    found = False
+    while not found:
+        n += 1
         comp = Comp(data)
         comp.register['a'] = n
-        state = []
+        state = set()
         while True:
             comp.run()
-            state.append(stat := tuple(i[1] for i in comp.register.items()) + tuple(i[1] for i in comp.code.items()))
-            if len(comp) >= 2:
-                pass
-        
+            len_ = len(comp.output)
+            if comp.output == ([0,1] * (len_ // 2 + 1))[:len_]:
+                state_ = tuple(i[1] for i in comp.register.items())
+                if state_ in state:
+                    found = True
+                    break
+                else:
+                    state.add(state_)
+            else:
+                break
+        if False:
+            print(f"{n}: Broke at length: {len_}")
     print(f"A1: {n}")
 
 if __name__ == '__main__':
