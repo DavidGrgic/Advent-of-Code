@@ -32,8 +32,7 @@ def main():
                          [int(i[:-1]) for i in sua]})
 
     plus = lambda a,b: tuple(i+j for i,j in zip(a,b))
-    distance = lambda a,b: sum(abs(i-j) for i,j in zip(a,b))
-                
+
     # Part 1
     if True:
         p1 = set()
@@ -44,7 +43,6 @@ def main():
         print(f"A1: {len(p1)}")
 
     # Part 2
-    show = False
     # Find nodes small enougt to fit in any other such small node and than work with just that nodes.
     access = (0,0)
     node = sorted(data.items(), key=lambda i: (i[1][1], -i[1][0]))
@@ -54,13 +52,13 @@ def main():
     node = {node[i][0] for i in range(len(node)) if node[i][1][1] <= min(s for _,(s,*_) in node[:i+1])}
     assert access in node, "Access node should be one of 'movable nodes'."
     assert goal_ in node, "Goal node should be one of 'movable nodes'."
-    
+
     neighbour = lambda yx: {yx_ for d in {(1,0), (-1,0), (0,1), (0,-1)} if (yx_ := plus(yx, d)) in node}  # All node neighbours, e.g. directly attached nodes, with used value
-    
+
     def plt(position):  # To help visualize current state, position is tuple, first component is node of goal data, second is empty node
         ret = {k: 1 for k in node} | {k: i+2 for i, k in enumerate(position)}
         plot(ret, {0: '#', 1: '.', 2: 'G', 3: '_'})
-    
+
     if True:  # Frst move empty space close to goal data.
         edge = [(yx, yx_) for yx in node for d in {(1,0), (0,1)} if (yx_ := plus(yx, d)) in node and goal_ not in {yx, yx_}]
         G = nx.Graph()
@@ -74,29 +72,21 @@ def main():
         path = {0: {(goal_, empty_)}}
     
     # Second, use Breadth First Search (BFS) to move goal data to access node. State is tuple of goal and empty node
-    goal_treashold = sum(max(i[j] for i in node) for j in range(2))   # To speed up BFS, keep only states, where goal has moved more or equal away from access node. Value has to be 0 or greater
-    empty_treashold = sum(max(i[j] for i in node) for j in range(2))  # To speed up BFS, keep only states, where empty stayed close to goal with this margin. Value has to be 2 or greater
     p2 = []
     for tt, state_ in path.items():
         t = tt
-        best = distance(goal_, access); archive = set()
+        archive = set()
         while True:
             archive |= state_
             t += 1
             state = set()
             for pos_ in state_:
                 for nn in neighbour(pos_[1]):
-                    if distance(pos_[0], nn) > empty_treashold:
-                        continue
                     pos = pos_[::-1] if nn in pos_ else (pos_[0], nn)  # Swap
-                    if pos not in archive and (dist := distance(pos[0], access)) <= best + goal_treashold:
+                    if pos not in archive:
                         state.add(pos)
-                        if dist < best:
-                            best = dist
-                            if show:
-                                plt(pos)
-            if show:
-                print(f"At {t}, number of states: {len(state)}, best is {best} away.")
+            if 0:
+                print(f"At {t}, number of states: {len(state)}")
             if len(state) == 0:
                 t = float('inf')
                 break
