@@ -4,7 +4,8 @@
 """
 import math, copy, os, sys
 import pandas as pd, numpy as np
-#from collections import Counter
+import hashlib
+from collections import Counter
 #from fractions import Fraction
 #from itertools import permutations, combinations, product
 #from functools import cache   # @cache
@@ -22,23 +23,29 @@ def plot(data, mapper: dict = {0: '.', 1: '#'}, default: dict = {set: 1, dict: 0
 
 def main():
     # Read
-    data = []
-    with open('t.txt', 'r') as file:
-        for l, ln in enumerate(file):
-            ln = ln.replace('\n', '')
-            if ln == '': # Nov blok podatkov
-                pass
-            da = ln.split(',')
-            data += [da]
+    data = '10111100110001111', 272
+    #data = '10000', 20
+
+    dat = [int(i) for i in data[0]]
+
+    def disk(da: list[int], nn: int):
+        while len(da) < nn:
+            da += [0] + [int(not i) for i in reversed(da)]
+        return da[:nn]
+
+    def checksum(da: list[int]):
+        while (len_ := len(da)) % 2 == 0:
+            da = [len(set(da[i:i+2])) % 2 for i in range(0, len_, 2)]
+        return da
 
     # Part 1
     if True:
-        dat=copy.deepcopy(data)
-        print(f"A1: {0}")
+        chk = checksum(disk(dat, data[-1]))
+        print(f"A1: {''.join(str(i) for i in chk)}")
 
     # Part 2
-    dat=copy.deepcopy(data)
-    print(f"A2: {0}")
+    chk = checksum(disk(dat, 35651584))
+    print(f"A2: {''.join(str(i) for i in chk)}")
 
 if __name__ == '__main__':
     main()

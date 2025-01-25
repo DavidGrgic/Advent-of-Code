@@ -22,23 +22,26 @@ def plot(data, mapper: dict = {0: '.', 1: '#'}, default: dict = {set: 1, dict: 0
 
 def main():
     # Read
-    data = []
-    with open('t.txt', 'r') as file:
+    data = {}
+    with open('d.txt', 'r') as file:
         for l, ln in enumerate(file):
-            ln = ln.replace('\n', '')
-            if ln == '': # Nov blok podatkov
-                pass
-            da = ln.split(',')
-            data += [da]
+            _,k,_,p,*_,s = ln.replace('\n', '').split()
+            data.update({int(k.replace('#','')): (int(p), int(s.replace('.','')))})
+
+    def spin(dat):
+        t = 0
+        while not all(((t + k + s) % p) == 0 for k,(p,s) in dat.items()):
+            t += 1
+        return t
 
     # Part 1
     if True:
-        dat=copy.deepcopy(data)
-        print(f"A1: {0}")
+        p1 = spin(data)
+        print(f"A1: {p1}")
 
     # Part 2
-    dat=copy.deepcopy(data)
-    print(f"A2: {0}")
+    p2 = spin(data | {max(data) + 1: (11, 0)})
+    print(f"A2: {p2}")
 
 if __name__ == '__main__':
     main()
