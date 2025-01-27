@@ -22,45 +22,54 @@ def plot(data, mapper: dict = {0: '.', 1: '#'}, default: dict = {set: 1, dict: 0
 
 def main():
     # Read
-    data = ''
+    data = []
     with open('d.txt', 'r') as file:
         for l, ln in enumerate(file):
-            data += ln.replace('\n', '')
+            data.append(ln.replace('\n', ''))
 
-    #data = 'A(1x5)BC'
-    #data = '(3x3)XYZ'
-    #data = 'A(2x2)BCD(2x2)EFG'
-    #data = '(6x1)(1x3)A'
-    #data = 'X(8x2)(3x3)ABCY'
-    #data = '(27x12)(20x12)(13x14)(7x10)(1x12)A'
-    #data = '(25x3)(3x3)ABC(2x3)XY(5x2)PQRSTX(18x9)(3x2)TWO(5x7)SEVEN'
+    #data = ['abba[mnop]qrst']
+    #data = ['abcd[bddb]xyyx']
+    #data = ['aaaa[qwer]tyui']
+    #data = ['ioxxoj[asdfgh]zxcvbn']
+    #data = ['aba[bab]xyz']
+    #data = ['xyx[xyx]xyx']
+    #data = ['aaa[kek]eke']
+    #data = ['zazbz[bzb]cdb']
 
+    def parts(dat):
+        i = 0
+        base = []
+        part = []
+        while (i_ := dat[i:].find('[')) >= 0:
+            _i = dat[i:].find(']')
+            base.append(dat[i:i+i_])
+            part.append(dat[i+i_+1:i+_i])
+            i += _i + 1
+        base.append(dat[i:])
+        return base, part
+
+    def is_abba(x, l = 4):
+        return any(all(x[j] != x[j+1] for j in range(i, i+l//2-1)) and x[i+l//2-1] == x[i+l//2] and all(x[i+j] == x[i+l-j-1] for j in range(l//2)) for i in range(len(x)+1-l))
+    
+    def get_aba(x):
+        return {x[i:i+3] for i in range(len(x)-2) if x[i] == x[i+2] and x[i] != x[i+1]}
+    
     # Part 1
     if True:
-        i = 0
-        dat = ''
-        while (i_ := data[i:].find('(')) >= 0:
-            dat += data[i:i+i_]
-            assert (_i := data[i + i_:].find(')')) > 0, "Wrong expansion instruction."
-            l, m = [int(j) for j in data[i + i_ + 1: i + i_ + _i].split('x')]
-            dat += m * data[i+i_+_i+1:(i := i+i_+_i+l+1)]
-        dat += data[i:]
-        print(f"A1: {len(dat)}")
+        p1 = []
+        for dat in data:
+            ba, pa = parts(dat)
+            p1.append(any(is_abba(b) for b in ba) and not any(is_abba(p) for p in pa))
+        print(f"A1: {sum(p1)}")
 
     # Part 2
-    def decomp(data: str, size: bool = True):
-        i = 0
-        dat = 0 if size else ''
-        while (i_ := data[i:].find('(')) >= 0:
-            dat += i_ if size else data[i:i+i_]
-            assert (_i := data[i + i_:].find(')')) > 0, "Wrong expansion instruction."
-            l, m = [int(j) for j in data[i + i_ + 1: i + i_ + _i].split('x')]
-            dat += m * decomp(data[i+i_+_i+1:(i := i+i_+_i+l+1)], size)
-        dat += len(data) - i if size else data[i:]
-        return dat
-
-    p2 = decomp(data)
-    print(f"A2: {p2}")
+    p2 = []
+    for dat in data:
+        ba, pa = parts(dat)
+        aba = {i for b in ba for i in get_aba(b)}
+        bab = {i for p in pa for i in get_aba(p)}
+        p2.append(bool(aba & {i[1] + i[:-1] for i in bab}))
+    print(f"A2: {sum(p2)}")
 
 if __name__ == '__main__':
     main()
