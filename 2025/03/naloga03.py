@@ -26,19 +26,28 @@ def main():
     with open('t.txt', 'r') as file:
         for l, ln in enumerate(file):
             ln = ln.replace('\n', '')
-            if ln == '': # Nov blok podatkov
-                pass
-            da = ln.split(',')
-            data += [da]
+            data += [tuple(int(i) for i in ln)]
+
+    def bat(pack, nn = 2):
+        i = 0
+        l = len(pack)
+        b = ''
+        for n in range(nn):
+            m = max(pack[i: l-(1-n)])
+            b += str(m)
+            i = pack.index(m) + 1
+        return int(b)
 
     # Part 1
     if True:
         dat=copy.deepcopy(data)
-        print(f"A1: {0}")
+        p1 = [bat(i) for i in dat]
+        print(f"A1: {sum(p1)}")
 
     # Part 2
     dat=copy.deepcopy(data)
-    print(f"A2: {0}")
+    p2 = [bat(i, 12) for i in dat]
+    print(f"A2: {sum(p2)}")
 
 if __name__ == '__main__':
     main()
