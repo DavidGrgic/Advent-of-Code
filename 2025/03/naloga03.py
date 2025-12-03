@@ -23,7 +23,7 @@ def plot(data, mapper: dict = {0: '.', 1: '#'}, default: dict = {set: 1, dict: 0
 def main():
     # Read
     data = []
-    with open('t.txt', 'r') as file:
+    with open('d.txt', 'r') as file:
         for l, ln in enumerate(file):
             ln = ln.replace('\n', '')
             data += [tuple(int(i) for i in ln)]
@@ -33,9 +33,9 @@ def main():
         l = len(pack)
         b = ''
         for n in range(nn):
-            m = max(pack[i: l-(1-n)])
+            m = max(pack[i: l+n+1-nn])
             b += str(m)
-            i = pack.index(m) + 1
+            i += pack[i:].index(m) + 1
         return int(b)
 
     # Part 1
