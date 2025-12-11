@@ -24,12 +24,12 @@ def plot(data, mapper: dict = {0: '.', 1: '#'}, default: dict = {set: 1, dict: 0
 def main():
     # Read
     data = []
-    with open('t.txt', 'r') as file:
+    with open(os.path.abspath(os.path.join(os.path.dirname( __file__ ), 't.txt')), 'r') as file:
         for l, ln in enumerate(file):
             ln = ln.replace('\n', '')
             da = ln.split(' ')
             data += [{'l': tuple(i == '#' for i in da[0][1:-1]),
-                      'b': sorted([tuple(int(i) for i in b[1:-1].split(',')) for b in da[1:-1]], key=lambda x: len(x)),
+                      'b': [tuple(int(i) for i in b[1:-1].split(',')) for b in da[1:-1]],
                       'j': tuple(int(i) for i in da[-1][1:-1].split(','))}]
 
     # Part 1
@@ -63,8 +63,8 @@ def main():
         h = highspy.Highs()
         h.setOptionValue("log_to_console", False)
         h.setOptionValue("log_dev_level", 0)
-        h.setOptionValue("mip_rel_gap", 0)
-        h.setOptionValue("mip_abs_gap", 0)
+        h.setOptionValue("mip_rel_gap", 10000)
+        h.setOptionValue("mip_abs_gap", 10000)
         for i, _ in enumerate(button):
             h.addVar(0, highspy.kHighsInf)
             h.changeColCost(i, 1)
@@ -84,13 +84,22 @@ def main():
     
     def process3(joltage, button):
         
-        rng = [[0, max(joltage)]] * len(button)
-        mhg
-        while joltage not in stanje:
-            k += 1
-            stanje = {n for s in stanje for b in button if check(n := press(s, b))}
-            print(f"\t{k}: {len(stanje)}")
-        return k
+        rng = [[0, max(joltage)] for _ in button]# * len(button)
+        mng = {i: {k for k, v in enumerate(button) if i in v} for i in range(len(joltage))}  # which lights (key) are managed by which buttons (value)
+        while True:
+            rng_ = copy.deepcopy(rng)
+            for l, but in mng.items():
+                for b in but:
+                    ut = but - {b}
+                    if ut:
+                        rng[b][0] = max(rng[b][0], joltage[l] - sum(rng[i][-1] for i in ut))
+                        rng[b][1] = min(rng[b][1], joltage[l] - sum(rng[i][0] for i in ut))
+                    else:
+                        rng[b][0] = max(rng[b][0], joltage[l])
+                        rng[b][1] = min(rng[b][1], joltage[l])
+            if rng_ == rng:
+                break
+        return math.prod(i[-1]-i[0]+1 for i in rng)
     
     if True:
         dat=copy.deepcopy(data)
@@ -108,7 +117,7 @@ def main():
         #p2.append(linsol(da['j'], da['b']))
         #p2.append(process2(da['j'], da['b']))
         print(f"# {(k := k+1)}: {p2[-1]}")
-    print(f"A2: {sum(p2)}")  # 16036, 16049 too low
+    print(f"A2: {sum(p2)}")  # 16036, 16049 too low, 16050, 16103
 
 if __name__ == '__main__':
     main()

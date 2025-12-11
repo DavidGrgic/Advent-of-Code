@@ -7,7 +7,7 @@ import pandas as pd, numpy as np
 #from collections import Counter
 #from fractions import Fraction
 #from itertools import permutations, combinations, product
-#from functools import cache   # @cache
+from functools import cache   # @cache
 import networkx as nx   # G = nx.DiGraph(); G.add_edges_from([('Start', 'B'), ('B', 'C'), ('Start', 'C'), ('C', 'End')]); nx.shortest_path(G, 'Start', 'End'); G.add_weighted_edges_from([('Start', 'B', 1.7), ('B', 'C', 0.6), ('Start', 'C', 2.9), ('C', 'End', 0.2)]); nx.shortest_path(G, 'Start', 'End', 'weight')
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
 def plot(data, mapper: dict = {0: '.', 1: '#'}, default: dict = {set: 1, dict: 0}):
@@ -29,20 +29,34 @@ def main():
             da = ln.split(': ')
             data[da[0]] = set(da[-1].split())
 
+    @cache
+    def walk(now: str, end: str) -> int:
+        nxt = data.get(now)
+        if nxt is None:
+                return 0
+        else:
+            w = []
+            for n in nxt:
+                if n == end:
+                    w.append(1)
+                else:
+                    w.append(walk(n, end))
+            return sum(w)
+
     # Part 1
-    G = nx.DiGraph(); G.add_edges_from([(k, i) for k, v in data.items() for i in v])
-    if False:
+    if True:
+        G = nx.DiGraph(); G.add_edges_from([(k, i) for k, v in data.items() for i in v])
         p1 = [p for p in nx.all_simple_paths(G, 'you', 'out')]
         print(f"A1: {len(p1)}")
-
+      
     # Part 2
     opt = [('svr', 'dac', 'fft', 'out'), ('svr', 'fft', 'dac', 'out')]
     p2 = []
     for o in opt:
         p = []
         for i in range(len(o)-1):
-            p += [sum(1 for _ in nx.all_simple_paths(G, o[i], o[i+1]))]
-        p2 += [math.prod(p)]
+            p.append(walk(o[i], o[i+1]))
+        p2.append(math.prod(p))
     print(f"A2: {sum(p2)}")
 
 if __name__ == '__main__':
