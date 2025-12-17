@@ -6,7 +6,7 @@ import math, copy, os, sys
 import pandas as pd, numpy as np
 #from collections import Counter
 #from fractions import Fraction
-#from itertools import permutations, combinations, product
+from itertools import permutations, combinations, product
 #from functools import cache   # @cache
 #import networkx as nx   # G = nx.DiGraph(); G.add_edges_from([('Start', 'B'), ('B', 'C'), ('Start', 'C'), ('C', 'End')]); nx.shortest_path(G, 'Start', 'End'); G.add_weighted_edges_from([('Start', 'B', 1.7), ('B', 'C', 0.6), ('Start', 'C', 2.9), ('C', 'End', 0.2)]); nx.shortest_path(G, 'Start', 'End', 'weight')
 import highspy
@@ -24,7 +24,7 @@ def plot(data, mapper: dict = {0: '.', 1: '#'}, default: dict = {set: 1, dict: 0
 def main():
     # Read
     data = []
-    with open(os.path.abspath(os.path.join(os.path.dirname( __file__ ), 't.txt')), 'r') as file:
+    with open('d.txt', 'r') as file:
         for l, ln in enumerate(file):
             ln = ln.replace('\n', '')
             da = ln.split(' ')
@@ -33,7 +33,7 @@ def main():
                       'j': tuple(int(i) for i in da[-1][1:-1].split(','))}]
 
     # Part 1
-    def process1(light, button):
+    def process(light, button):
         
         def press(lig, but):
             return tuple(not l if i in but else l for i, l in enumerate(lig))
@@ -45,19 +45,6 @@ def main():
             stanje = {press(s, b) for s in stanje for b in button}
         return k
     
-    def process2(joltage, button):
-        
-        def press(jol, but):
-            return tuple(l+1 if i in but else l for i, l in enumerate(jol))
-        
-        check = lambda x: all(a <= b for a, b in zip(x, joltage))
-        stanje = {(0,) * len(joltage)}
-        k = 0
-        while joltage not in stanje:
-            k += 1
-            stanje = {n for s in stanje for b in button if check(n := press(s, b))}
-            print(f"\t{k}: {len(stanje)}")
-        return k
     
     def linsol(joltage, button):
         h = highspy.Highs()
@@ -80,12 +67,9 @@ def main():
             raise Exception()
         solution = [int(i) for i in h.getSolution().col_value]
         return sum(solution)
-                
-    
-    def process3(joltage, button):
-        
-        rng = [[0, max(joltage)] for _ in button]# * len(button)
-        mng = {i: {k for k, v in enumerate(button) if i in v} for i in range(len(joltage))}  # which lights (key) are managed by which buttons (value)
+
+    def get_rng(joltage, button, mng):
+        rng = [[0, min(joltage[i] for i in b)] for b in button]  # Button presses is limited so that no light is over-joltage
         while True:
             rng_ = copy.deepcopy(rng)
             for l, but in mng.items():
@@ -99,24 +83,69 @@ def main():
                         rng[b][1] = min(rng[b][1], joltage[l])
             if rng_ == rng:
                 break
-        return math.prod(i[-1]-i[0]+1 for i in rng)
-    
+        return rng
+
+
+#    def compositions_old(x, n):
+#        for cuts in combinations(range(x + n - 1), n - 1):
+#            points = (-1,) + cuts + (x + n - 1,)
+#            yield tuple(points[i+1] - points[i] - 1 for i in range(n))
+
+    def compositions(x, rn):
+        n = len(rn)
+        for cuts in combinations(range(x + n - 1), n - 1):
+            points = (-1,) + cuts + (x + n - 1,)
+            comp = tuple(points[i+1] - points[i] - 1 for i in range(n))
+            if not all(rn[i][0] <= c <= rn[i][1] for i, c in enumerate(comp)):
+                continue
+            yield tuple(points[i+1] - points[i] - 1 for i in range(n))
+
+
     if True:
         dat=copy.deepcopy(data)
         p1 = []
         for da in dat:
-            p1.append(process1(da['l'], da['b']))
+            p1.append(process(da['l'], da['b']))
         print(f"A1: {sum(p1)}")
 
     # Part 2
     dat=copy.deepcopy(data)
     p2 = []
-    k=0
     for da in dat:
-        p2.append(process3(da['j'], da['b']))
-        #p2.append(linsol(da['j'], da['b']))
-        #p2.append(process2(da['j'], da['b']))
-        print(f"# {(k := k+1)}: {p2[-1]}")
+        joltage = da['j']
+        button = da['b']
+        mng = {i: {k for k, v in enumerate(button) if i in v} for i in range(len(joltage))}  # Which lights (key) are managed by which buttons (value)
+        mng_ = {i[0]: i[1] for i in sorted(mng.items(), key=lambda x: len(x[1]))}
+        mng = {(k := next(iter(mng_))): mng_[k]}  # Reorder so that each next managed light is managed by smallest number of additional buttons
+        while (m := set(mng)) != (m_ := set(mng_)):
+            lst = tuple(mng)[-1]
+            nxt = sorted(((i, len(mng_[i] - mng_[lst])) for i in m_ - m), key=lambda x: x[1])[0][0]
+            mng[nxt] = mng_[nxt]
+        rng = get_rng(joltage, button, mng)
+        combi = {()}  # All valid button combinations
+        index = []  # Button index (position) for valid button combinations
+        for l, but in mng.items():
+            ix = [i for i in but if i not in index]  # Buttons, to be manipulated to get light l right joltage
+            if not ix:
+                combi = {com for com in combi if
+                          joltage[l] == sum(com[i] for i, v in enumerate(index) if v in but and v not in ix)}
+            else:
+                combi_ = set()
+                for com in combi:
+                    c_ = [com[i] for i, v in enumerate(index) if v in but and v not in ix]  # Presses of the buttons, already included in valid combinations
+                    if (jol := joltage[l] - sum(c_)) < 0:
+                        continue
+#                    combi_ |= {com + i for i in compositions_old(jol, len(ix))}
+
+#                    [c for c in compositions(jol, [[0,3], [0,2]])]
+
+                    combi_ |= {com + c for c in compositions(jol, [rng[i] for i in ix])}
+                combi = combi_
+            index += ix
+            print(f"\t({l}): {len(next(iter(combi)))} / {len(combi)}")
+        p2.append(min(sum(i) for i in combi))
+
+        print(f"# {len(p2)}: {p2[-1]}\t{linsol(da['j'], da['b'])}")
     print(f"A2: {sum(p2)}")  # 16036, 16049 too low, 16050, 16103
 
 if __name__ == '__main__':

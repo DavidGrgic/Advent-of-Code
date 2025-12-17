@@ -87,7 +87,7 @@ def main():
                 g[k[0]] -= 1
                 if (r := build(a, g)):
                     res += [[k] + i for i in r]
-                    return res
+                    return res  # Comment this line if you would like to get all solutions
         return res
 
     # Part 1
