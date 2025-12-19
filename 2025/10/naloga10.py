@@ -9,7 +9,9 @@ import pandas as pd, numpy as np
 from itertools import permutations, combinations, product
 #from functools import cache   # @cache
 #import networkx as nx   # G = nx.DiGraph(); G.add_edges_from([('Start', 'B'), ('B', 'C'), ('Start', 'C'), ('C', 'End')]); nx.shortest_path(G, 'Start', 'End'); G.add_weighted_edges_from([('Start', 'B', 1.7), ('B', 'C', 0.6), ('Start', 'C', 2.9), ('C', 'End', 0.2)]); nx.shortest_path(G, 'Start', 'End', 'weight')
+import time
 import highspy
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..')))
 def plot(data, mapper: dict = {0: '.', 1: '#'}, default: dict = {set: 1, dict: 0}):
     if isinstance(data, set):
@@ -45,29 +47,6 @@ def main():
             stanje = {press(s, b) for s in stanje for b in button}
         return k
     
-    
-    def linsol(joltage, button):
-        h = highspy.Highs()
-        h.setOptionValue("log_to_console", False)
-        h.setOptionValue("log_dev_level", 0)
-        h.setOptionValue("mip_rel_gap", 10000)
-        h.setOptionValue("mip_abs_gap", 10000)
-        for i, _ in enumerate(button):
-            h.addVar(0, highspy.kHighsInf)
-            h.changeColCost(i, 1)
-        h.changeColsIntegrality((len_ := len(button)), list(range(len_)),
-                                [highspy.HighsVarType.kInteger] * len_)
-        for j, l in enumerate(joltage):
-            idx = [i for i, b in enumerate(button) if j in b]
-            val = (1,) * (len_ := len(idx))
-            h.addRow(l, l, len_, idx, val)
-        h.run()
-        if h.getModelStatus() != highspy.HighsModelStatus.kOptimal:
-            print(h.modelStatusToString(h.getModelStatus()))
-            raise Exception()
-        solution = [int(i) for i in h.getSolution().col_value]
-        return sum(solution)
-
     def get_rng(joltage, button, mng):
         rng = [[0, min(joltage[i] for i in b)] for b in button]  # Button presses is limited so that no light is over-joltage
         while True:
@@ -85,12 +64,6 @@ def main():
                 break
         return rng
 
-
-#    def compositions_old(x, n):
-#        for cuts in combinations(range(x + n - 1), n - 1):
-#            points = (-1,) + cuts + (x + n - 1,)
-#            yield tuple(points[i+1] - points[i] - 1 for i in range(n))
-
     def compositions(x, rn):
         n = len(rn)
         for cuts in combinations(range(x + n - 1), n - 1):
@@ -99,6 +72,28 @@ def main():
             if not all(rn[i][0] <= c <= rn[i][1] for i, c in enumerate(comp)):
                 continue
             yield tuple(points[i+1] - points[i] - 1 for i in range(n))
+
+    def linsol(joltage, button):
+        h = highspy.Highs()
+        h.setOptionValue("log_to_console", False)
+        h.setOptionValue("log_dev_level", 0)
+        #h.setOptionValue("mip_rel_gap", 1e-3)
+        #h.setOptionValue("mip_abs_gap", 1e-3)
+        for i, _ in enumerate(button):
+            h.addVar(0, highspy.kHighsInf)
+            h.changeColCost(i, 1)
+        h.changeColsIntegrality((len_ := len(button)), list(range(len_)),
+                                [highspy.HighsVarType.kInteger] * len_)
+        for j, l in enumerate(joltage):
+            idx = [i for i, b in enumerate(button) if j in b]
+            val = (1,) * (len_ := len(idx))
+            h.addRow(l, l, len_, idx, val)
+        h.run()
+        if h.getModelStatus() != highspy.HighsModelStatus.kOptimal:
+            print(h.modelStatusToString(h.getModelStatus()))
+            raise Exception()
+        solution = [int(i) for i in h.getSolution().col_value]
+        return sum(solution)
 
 
     if True:
@@ -110,18 +105,23 @@ def main():
 
     # Part 2
     dat=copy.deepcopy(data)
+    log = True; t0 = time.time()
     p2 = []
     for da in dat:
         joltage = da['j']
         button = da['b']
-        mng = {i: {k for k, v in enumerate(button) if i in v} for i in range(len(joltage))}  # Which lights (key) are managed by which buttons (value)
-        mng_ = {i[0]: i[1] for i in sorted(mng.items(), key=lambda x: len(x[1]))}
-        mng = {(k := next(iter(mng_))): mng_[k]}  # Reorder so that each next managed light is managed by smallest number of additional buttons
-        while (m := set(mng)) != (m_ := set(mng_)):
-            lst = tuple(mng)[-1]
-            nxt = sorted(((i, len(mng_[i] - mng_[lst])) for i in m_ - m), key=lambda x: x[1])[0][0]
-            mng[nxt] = mng_[nxt]
-        rng = get_rng(joltage, button, mng)
+        manager = {i: {k for k, v in enumerate(button) if i in v} for i in range(len(joltage))}  # Which lights (key) are managed by which buttons (value)
+        rng = get_rng(joltage, button, manager)
+        # Reorder so that each next managed light is managed by smallest number of additional buttons
+        mng = sorted(((k, len(v), math.prod(rng[i][1] - rng[i][0] + 1 for i in v)) for k, v in manager.items()),
+                      key=lambda x: x[1:][::-1])
+        mng = {(k := next(iter(mng))[0]): manager[k]}
+        while (m := set(mng)) != (m_ := set(manager)):
+            done = {j for i in mng.values() for j in i}
+            nxt = sorted(((i, len((d := manager[i] - done)), math.prod(rng[i][1] - rng[i][0] + 1 for i in d)) for i in m_ - m),
+                        key=lambda x: x[1:][::-1])[0][0]
+            mng[nxt] = manager[nxt]
+        # Do combinations
         combi = {()}  # All valid button combinations
         index = []  # Button index (position) for valid button combinations
         for l, but in mng.items():
@@ -135,18 +135,13 @@ def main():
                     c_ = [com[i] for i, v in enumerate(index) if v in but and v not in ix]  # Presses of the buttons, already included in valid combinations
                     if (jol := joltage[l] - sum(c_)) < 0:
                         continue
-#                    combi_ |= {com + i for i in compositions_old(jol, len(ix))}
-
-#                    [c for c in compositions(jol, [[0,3], [0,2]])]
-
                     combi_ |= {com + c for c in compositions(jol, [rng[i] for i in ix])}
                 combi = combi_
             index += ix
-            print(f"\t({l}): {len(next(iter(combi)))} / {len(combi)}")
+            if log: print(f"\t({l}): {len(next(iter(combi)))} / {len(combi)}")
         p2.append(min(sum(i) for i in combi))
-
-        print(f"# {len(p2)}: {p2[-1]}\t{linsol(da['j'], da['b'])}")
-    print(f"A2: {sum(p2)}")  # 16036, 16049 too low, 16050, 16103
+        if log: print(f"# {len(p2)}, {round(time.time() - t0, 2)}s : {p2[-1]} \t milp ~ {linsol(joltage, button)}\n")
+    print(f"A2: {sum(p2)}")
 
 if __name__ == '__main__':
     main()
